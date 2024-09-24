@@ -1,10 +1,10 @@
 #include<bits\stdc++.h>
 using namespace std;
 /*
-	Simple Calender and Output Manager aka. SCOM
+	Simple Calender and Outcome Manager aka. SCOM
 	by Alittlezhi.
 */
-const string SAVEFILE ="SCOM.save";
+const string SAVEFILE = "SCOM.save";
 bool saveExists(const string& save){	//判断存档是否存在
 	ifstream file(save);
 	return file.good();
@@ -26,7 +26,8 @@ int mainUI() {
 	打印主页
 	print mainUI
 	*/
-	cout << "Simple Calender and Output Manager";
+	cout << "Simple Calender and Outcome Manager" << '\n';
+	cout << "[1]24H   [2]7D   [3]1M   [4]1Y   [5]Special"<<'\n';
 	return 0;
 }
 int main() {
