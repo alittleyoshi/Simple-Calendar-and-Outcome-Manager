@@ -3,6 +3,15 @@
 #include <string>
 
 
+struct Task{
+	std::string title;
+	std::string description;
+	std::string startDate;
+	std::string endDate;
+	int status;	// 0 - not started, 1 - completed, 2 - emergency
+};
+
+Task query_result;
 
 class DatabaseManager {
 private:
@@ -69,6 +78,7 @@ public:
 		}
 	
 	static int callback(void* data, int argc, char** argv, char** azColName) {
+		query_result = {argv[1], argv[2], argv[3], argv[4], argv[5][0] - '0'};
 		for(int i = 0; i < argc; i++) {
 			std::cout << azColName[i] << ": " << (argv[i] ? argv[i] : "NULL") << std::endl;
 		}
@@ -190,29 +200,32 @@ int main() {
 	std::cout << "\nInitial task:\n";
 	dbManager.queryTasks();
 	
-	// 更新整个任务
-	dbManager.updateTask(
-		1,                  // ID
-		"Updated Meeting",  // 新标题
-		"Updated description", // 新描述
-		1677649200000,     // 新开始时间
-		1677652800000,     // 新结束时间
-		2                  // 新状态
-		);
+	std::cout<<query_result.title<<' '<<query_result.description<<' '<<query_result.startDate<<' '<<query_result.endDate<<' '<<query_result.status<<'\n';
 	
-	// 查询更新后的状态
-	std::cout << "\nAfter full update:\n";
-	dbManager.queryTasks();
+	// // 更新整个任务
+	// dbManager.updateTask(
+	// 	1,                  // ID
+	// 	"Updated Meeting",  // 新标题
+	// 	"Updated description", // 新描述
+	// 	1677649200000,     // 新开始时间
+	// 	1677652800000,     // 新结束时间
+	// 	2                  // 新状态
+	// 	);
+
+	// // 查询更新后的状态
+	// std::cout << "\nAfter full update:\n";
+	// dbManager.queryTasks();
+
+	// // 只更新标题
+	// dbManager.updateTaskTitle(1, "Quick Meeting");
+
+	// // 只更新状态
+	// dbManager.updateTaskStatus(1, 3);
 	
-	// 只更新标题
-	dbManager.updateTaskTitle(1, "Quick Meeting");
-	
-	// 只更新状态
-	dbManager.updateTaskStatus(1, 3);
-	
-	// 查询最终状态
-	std::cout << "\nAfter partial updates:\n";
-	dbManager.queryTasks();
-	
+	// // 查询最终状态
+	// std::cout << "\nAfter partial updates:\n";
+	// dbManager.queryTasks();
+
+	system("pause");
 	return 0;
 }
