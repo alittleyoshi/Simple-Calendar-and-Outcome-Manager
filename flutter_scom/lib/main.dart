@@ -14,6 +14,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+
     return ChangeNotifierProvider(
       create: (context) => MyAppState(),
       child: MaterialApp(
@@ -29,7 +31,22 @@ class MyApp extends StatelessWidget {
 }
 
 class MyAppState extends ChangeNotifier {
+  var todoList = <TodoList>[];
 
+  void init() {
+    if (todoList.isEmpty) {
+      todoList.add(TodoList());
+      todoList.add(TodoList());
+      todoList[0].taskList.add(
+          Task(0, 'Title', 'Todo1', DateTime.now(), DateTime.now(), 0));
+      todoList[0].taskList.add(
+          Task(1, 'eltiT', 'Todo2', DateTime.now(), DateTime.now(), 1));
+    }
+  }
+
+  void changeStatus() {
+    notifyListeners();
+  }
 }
 
 class MyHomePage extends StatefulWidget {
@@ -160,23 +177,19 @@ class TodoList {
 class _TodoPageState extends State<TodoPage> {
   var selectedIndex = 0;
 
-  var todoList = <TodoList>[];
-
   @override
   Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+    appState.init();
+
     Widget page;
 
-    todoList.add(TodoList());
-    todoList.add(TodoList());
-    todoList[0].taskList.add(Task(0, 'Title', 'Todo1', DateTime.now(), DateTime.now(), 0));
-    todoList[0].taskList.add(Task(1, 'eltiT', 'Todo2', DateTime.now(), DateTime.now(), 1));
-
-    var destination = todoList.map((list) => NavigationRailDestination(
+    var destination = appState.todoList.map((list) => NavigationRailDestination(
         icon: Icon(Icons.star),
         label: Text("Todo List ${list.id + 1}"),
     )).toList();
 
-    page = GeneratorTodoPage(list: todoList[selectedIndex]);
+    page = GeneratorTodoPage(listIndex: selectedIndex);
 
     // var destination = todoList[selectedIndex].taskList.map((task) => )
 
@@ -209,63 +222,82 @@ class _TodoPageState extends State<TodoPage> {
   }
 }
 
-class GeneratorTodoPage extends StatelessWidget {
+class GeneratorTodoPage extends StatefulWidget {
   const GeneratorTodoPage({
     super.key,
-    required this.list,
+    required this.listIndex,
   });
 
-  final TodoList list;
+  final int listIndex;
 
+  @override
+  State<GeneratorTodoPage> createState() => _GeneratorTodoPageState();
+}
+
+class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
   @override build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(height: 5),
-          Container(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            child: Row(
-              children: [
-                SizedBox(width: 10),
-                Icon(Icons.star),
-                SizedBox(width: 10),
-                Text("Todo List ${list.id + 1}"),
-              ],
-            ),
-          ),
-          SizedBox(height: 5),
-          Expanded(
-            child: Container(
-              color: Colors.white,
+    // widget.list.taskList.add(Task(1, 'eltiT', 'Todo2', DateTime.now(), DateTime.now(), 1));
+    var appState = context.watch<MyAppState>();
+
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () {},
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(height: 5),
+            Container(
+              color: Theme.of(context).colorScheme.primaryContainer,
               child: Row(
                 children: [
-                  SizedBox(width: 15),
-                  ListView(
-                    children: list.taskList.map((task) => Container(
-                      color: task.stat != 2 ? Theme.of(context).colorScheme.primaryContainer : Colors.deepOrange[300],
-                      child: Row(
-                        children: [
-                          SizedBox(width: 10),
-                          ElevatedButton.icon(
-                            onPressed: (){
-                              task.stat = task.stat == 1 ? 0 : 1;
-                            },
-                            icon: Icon(task.stat == 1 ? Icons.task_alt : Icons.circle),
-                            label: SizedBox(),
-                          ),
-                          SizedBox(width: 10),
-                          Text('Task ${task.title}'),
-                        ],
-                      ),
-                    )).toList(),
-                  ),
-                  SizedBox(width: 15),
+                  SizedBox(width: 10),
+                  Icon(Icons.star),
+                  SizedBox(width: 10),
+                  Text("Todo List ${widget.listIndex + 1}"),
                 ],
               ),
             ),
-          )
-        ],
+            SizedBox(height: 5),
+            Expanded(
+              child: Container(
+                color: Colors.white,
+                child: Row(
+                  children: [
+                    SizedBox(width: 15),
+                    Expanded(
+                      child: ListView(
+                        children: appState.todoList[widget.listIndex].taskList.map((task) => Container(
+                          color: task.stat != 2 ? Theme.of(context).colorScheme.primaryContainer : Colors.deepOrange[300],
+                          margin: EdgeInsets.all(10.0),
+                          child: Row(
+                            children: [
+                              SizedBox(width: 10),
+                              ElevatedButton.icon(
+                                onPressed: (){
+                                  setState((){
+                                    task.stat = task.stat == 1 ? 0 : 1;
+                                  });
+                                },
+                                icon: Icon(task.stat == 1 ? Icons.task_alt : Icons.circle),
+                                label: SizedBox(),
+                              ),
+                              SizedBox(width: 10),
+                              Text('Task ${task.title}'),
+                            ],
+                          ),
+                        )).toList(),
+                      ),
+                    ),
+                    SizedBox(width: 15),
+                  ],
+                ),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
