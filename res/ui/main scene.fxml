@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.MainSceneController">
+   <children>
+      <HBox prefHeight="100.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <VBox>
+               <children>
+                  <VBox VBox.vgrow="ALWAYS">
+                     <children>
+                        <Button mnemonicParsing="false" prefHeight="60.0" prefWidth="60.0" text="计划" />
+                        <Button mnemonicParsing="false" prefHeight="60.0" prefWidth="60.0" text="日历" />
+                     </children>
+                     <opaqueInsets>
+                        <Insets />
+                     </opaqueInsets>
+                  </VBox>
+                  <Button mnemonicParsing="false" prefHeight="60.0" prefWidth="60.0" text="设置" />
+               </children>
+            </VBox>
+            <AnchorPane HBox.hgrow="ALWAYS">
+               <children>
+                  <AnchorPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+               </children>
+            </AnchorPane>
+         </children>
+      </HBox>
+   </children>
+</AnchorPane>
