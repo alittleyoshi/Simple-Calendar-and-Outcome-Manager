@@ -2,6 +2,7 @@
 #include <sqlite3.h>
 #include <string>
 
+#define DART_API extern "C" __attribute__((visibility("default"))) __attribute__((used))
 
 struct Task{
 	std::string title;
@@ -178,6 +179,15 @@ public:
 		return true;
 	}
 };
+
+
+DART_API Task dart_query(const char *title, 
+	const char *description, 
+	const char *startTime, 
+	const char *endTime, 
+	int status){
+		return Task{title,description,startTime,endTime,status};
+}
 
 
 // 在main函数中使用这些新方法的示例：
