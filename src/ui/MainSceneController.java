@@ -1,9 +1,11 @@
 package ui;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.VBox;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -11,6 +13,8 @@ import java.util.ResourceBundle;
 public class MainSceneController implements Initializable {
     @FXML
     private ToggleGroup _tabButtonGroup;
+    @FXML
+    private VBox _planListVBox;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -25,5 +29,10 @@ public class MainSceneController implements Initializable {
                 ((Parent) newValue.getUserData()).setVisible(true);
             }
         });
+
+    }
+
+    @FXML
+    private void onTaskAddingAction(ActionEvent actionEvent) {
     }
 }

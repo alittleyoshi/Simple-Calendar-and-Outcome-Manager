@@ -4,24 +4,61 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.MainSceneController">
+<AnchorPane prefHeight="600.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.MainSceneController">
    <children>
-      <HBox nodeOrientation="RIGHT_TO_LEFT" prefHeight="100.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <HBox nodeOrientation="RIGHT_TO_LEFT" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
             <AnchorPane nodeOrientation="LEFT_TO_RIGHT" HBox.hgrow="ALWAYS">
                <children>
                   <AnchorPane fx:id="_planningPane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                      <children>
-                        <HBox prefHeight="100.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <HBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
-                              <ListView prefWidth="150.0" />
-                              <ListView HBox.hgrow="ALWAYS" />
+                              <VBox fx:id="_planListVBox" alignment="TOP_CENTER" maxWidth="150.0">
+                                 <children>
+                                    <Separator prefWidth="200.0" />
+                                    <AnchorPane focusTraversable="true">
+                                       <children>
+                                          <VBox alignment="TOP_CENTER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                             <children>
+                                                <HBox spacing="10.0">
+                                                   <children>
+                                                      <HBox spacing="10.0" HBox.hgrow="ALWAYS">
+                                                         <children>
+                                                            <Label text="Label" />
+                                                            <Label text="Label" />
+                                                         </children>
+                                                      </HBox>
+                                                      <Label text="Label" />
+                                                   </children></HBox>
+                                                <Label text="Label" textFill="#000000b2">
+                                                   <VBox.margin>
+                                                      <Insets top="10.0" />
+                                                   </VBox.margin></Label>
+                                             </children>
+                                             <padding>
+                                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                             </padding>
+                                          </VBox>
+                                       </children>
+                                    </AnchorPane>
+                                 </children>
+                              </VBox>
+                              <AnchorPane HBox.hgrow="ALWAYS">
+                                 <children>
+                                    <ScrollPane fitToHeight="true" fitToWidth="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                       <content>
+                                          <VBox />
+                                       </content>
+                                    </ScrollPane>
+                                    <Button mnemonicParsing="false" onAction="#onTaskAddingAction" prefHeight="30.0" prefWidth="30.0" text="+" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0" />
+                                 </children>
+                              </AnchorPane>
                            </children></HBox>
-                        <Button mnemonicParsing="false" prefHeight="30.0" prefWidth="30.0" text="+" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0" />
                      </children></AnchorPane>
                   <AnchorPane fx:id="_calendarPane" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                      <children>
-                        <HBox prefHeight="100.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <HBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
                               <ListView prefWidth="150.0" />
                            </children></HBox>
@@ -38,7 +75,7 @@
                               <ToggleGroup fx:id="_tabButtonGroup" />
                            </toggleGroup>
                            <VBox.margin>
-                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                              <Insets left="10.0" right="10.0" top="10.0" />
                            </VBox.margin></ToggleButton>
                         <ToggleButton mnemonicParsing="false" prefHeight="40.0" prefWidth="40.0" text="日历" toggleGroup="$_tabButtonGroup" userData="$_calendarPane">
                            <VBox.margin>
