@@ -303,9 +303,28 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
   }
 }
 
-class CalendarPage extends StatelessWidget {
+class CalendarPage extends StatefulWidget {
+  @override
+  State<CalendarPage> createState() => _CalendarPageState();
+}
+
+class _CalendarPageState extends State<CalendarPage> {
   @override
   Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+
+    
+
+    return Scaffold();
+  }
+}
+
+class GeneratorCalendarPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var begin_time = DateTime.now().add(Duration(hours: -1));
+    var end_time = begin_time.add(Duration(hours: 12));
+
     return Scaffold();
   }
 }
