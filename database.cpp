@@ -220,6 +220,9 @@ DART_API int query_tasklist_num(){
 	return tasklist_num;
 }
 
+
+
+
 void output(Task result){
 	std::cout<<result.is_in_tasklist<<' '
 	<<result.id<<' '
@@ -302,4 +305,44 @@ int main() {
 
 	system("pause");
 	return 0;
+}
+
+
+DART_API int test(){
+	DatabaseManager dbManager("tasks.db");
+	
+	// 创建表
+	dbManager.createTable();
+	
+	// 插入示例数据
+	dbManager.insertTask(
+		0,
+		"First title", 
+		"First desctription", 
+		16776492,
+		16776528,
+		1
+		);
+	
+	// 查询初始状态
+	std::cout << "\nQuery task:\n";
+	dbManager.queryTasks(0);
+	output(query_result);
+	
+	dbManager.updateTaskStatus(0, 1, 2);
+	
+	dbManager.queryTasks(0);
+	output(query_result);
+	
+	dbManager.createTable();
+	
+	dbManager.insertTask(1,"task2","des2",114514,1919810,0);
+	
+	dbManager.queryTasks(0);
+	output(query_result);
+	dbManager.queryTasks(1);
+	output(query_result);
+	
+	std::cout<<timestampToString(16776492);
+	
 }
