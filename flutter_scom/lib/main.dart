@@ -5,6 +5,14 @@ import 'dart:io';
 import 'package:ffi/ffi.dart';
 import 'package:path/path.dart';
 
+DynamicLibrary _lib = Platform.isLinux ?
+  DynamicLibrary.open('database.so') :
+  DynamicLibrary.open('database.dll');
+
+final queryTaskListNum = _lib
+    .lookup<NativeFunction<Int32 Function()>>('query_tasklist_num')
+  .asFunction<int Function()>;
+
 void main() {
   runApp(MyApp());
 }
@@ -14,7 +22,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
+    print('${queryTaskListNum()}');
 
     return ChangeNotifierProvider(
       create: (context) => MyAppState(),
