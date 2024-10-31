@@ -8,10 +8,10 @@ public final class DatabaseManager {
     private static final Connection _connection;
     private static final List<Plan> _plans = new ArrayList<>();
     private static final List<Task> _tasks = new ArrayList<>();
-    public List<Plan> getPlans() {
+    public static List<Plan> getPlans() {
         return Collections.unmodifiableList(_plans);
     }
-    public List<Task> getTasks() {
+    public static List<Task> getTasks() {
         return Collections.unmodifiableList(_tasks);
     }
     static {
@@ -28,8 +28,8 @@ public final class DatabaseManager {
                     "ID          INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "TITLE       TEXT    NOT NULL," +
                     "DESCRIPTION TEXT," +
-                    "START_TIME  TEXT NOT NULL," +
-                    "END_TIME    TEXT NOT NULL," +
+                    "START_TIME  BIGINT NOT NULL," +
+                    "END_TIME    BIGINT NOT NULL," +
                     "STATUS      INTEGER NOT NULL," +
                     "BELONG      INTEGER NOT NULL" +
                     ");" +
@@ -37,17 +37,20 @@ public final class DatabaseManager {
                     "ID          INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "TITLE       TEXT    NOT NULL," +
                     "DESCRIPTION TEXT," +
-                    "START_TIME  TEXT NOT NULL," +
-                    "END_TIME    TEXT NOT NULL" +
+                    "START_TIME  BIGINT NOT NULL," +
+                    "END_TIME    BIGINT NOT NULL" +
                     ");");
             Map<Integer, Plan> map = new TreeMap<>();
             for (ResultSet resultSet = statement.executeQuery("SELECT * FROM PLANS"); resultSet.next();) {
-                Plan plan = new Plan(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3), resultSet.getTime(4), resultSet.getTime(5));
+                Plan plan = new Plan(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3), new Date(resultSet.getLong(4)), new Date(resultSet.getLong(5)));
                 _plans.add(plan);
                 map.put(plan.getID(), plan);
             }
             for (ResultSet resultSet = statement.executeQuery("SELECT * FROM TASKS"); resultSet.next();) {
-                Task task = new Task(resultSet.getInt(1), map.get(resultSet.getInt(resultSet.getInt(7))), resultSet.getString(2), resultSet.getString(3), resultSet.getTime(4), resultSet.getTime(5), TaskStatus.fromInteger(resultSet.getInt(6)));
+                Plan belongPlan = map.get(resultSet.getInt(7));
+                Task task = new Task(resultSet.getInt(1), belongPlan, resultSet.getString(2), resultSet.getString(3), new Date(resultSet.getLong(4)), new Date(resultSet.getLong(5)), TaskStatus.fromInteger(resultSet.getInt(6)));
+                _tasks.add(task);
+                belongPlan.addTask(task);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -57,8 +60,8 @@ public final class DatabaseManager {
         try (PreparedStatement statement = _connection.prepareStatement("INSERT INTO PLANS(TITLE, DESCRIPTION, START_TIME, END_TIME) VALUES (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, title);
             statement.setString(2, description);
-            statement.setTime(3, new Time(startTime.getTime()));
-            statement.setTime(4, new Time(endTime.getTime()));
+            statement.setLong(3, startTime.getTime());
+            statement.setLong(4, endTime.getTime());
             statement.executeUpdate();
             try (ResultSet resultSet = statement.getGeneratedKeys()) {
                 Plan plan = new Plan(resultSet.getInt(1), title, description, startTime, endTime);
@@ -73,8 +76,8 @@ public final class DatabaseManager {
         try (PreparedStatement statement = _connection.prepareStatement("UPDATE PLANS SET TITLE = ?, DESCRIPTION = ?, START_TIME = ?, END_TIME = ? WHERE id = ?")) {
             statement.setString(1, plan.getTitle());
             statement.setString(2, plan.getDescription());
-            statement.setTime(3, new Time(plan.getStartTime().getTime()));
-            statement.setTime(4, new Time(plan.getEndTime().getTime()));
+            statement.setLong(3, plan.getStartTime().getTime());
+            statement.setLong(4, plan.getEndTime().getTime());
             statement.setInt(5, plan.getID());
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -82,13 +85,17 @@ public final class DatabaseManager {
         }
     }
     public static void removePlan(Plan plan) {
-        for (Task task : new ArrayList<>(plan.getTasks())) {
-            removeTask(task);
-        }
+        _tasks.removeAll(plan.getTasks());
         _plans.remove(plan);
-        try (PreparedStatement statement = _connection.prepareStatement("DELETE FROM PLANS WHERE ID = ?")) {
-            statement.setInt(1, plan.getID());
-            statement.executeUpdate();
+        try {
+            try (PreparedStatement statement = _connection.prepareStatement("DELETE FROM TASKS WHERE BELONG = ?")) {
+                statement.setInt(1, plan.getID());
+                statement.executeUpdate();
+            }
+            try (PreparedStatement statement = _connection.prepareStatement("DELETE FROM PLANS WHERE ID = ?")) {
+                statement.setInt(1, plan.getID());
+                statement.executeUpdate();
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -97,8 +104,8 @@ public final class DatabaseManager {
         try (PreparedStatement statement = _connection.prepareStatement("INSERT INTO TASKS(TITLE, DESCRIPTION, START_TIME, END_TIME, STATUS, BELONG) VALUES (?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, title);
             statement.setString(2, description);
-            statement.setTime(3, new Time(startTime.getTime()));
-            statement.setTime(4, new Time(endTime.getTime()));
+            statement.setLong(3, startTime.getTime());
+            statement.setLong(4, endTime.getTime());
             statement.setInt(5, TaskStatus.Unstarted.ordinal());
             statement.setInt(6, plan.getID());
             statement.executeUpdate();
@@ -116,8 +123,8 @@ public final class DatabaseManager {
         try (PreparedStatement statement = _connection.prepareStatement("UPDATE TASKS SET TITLE = ?, DESCRIPTION = ?, START_TIME = ?, END_TIME = ?, STATUS = ?, BELONG = ? WHERE id = ?")) {
             statement.setString(1, task.getTitle());
             statement.setString(2, task.getDescription());
-            statement.setTime(3, new Time(task.getStartTime().getTime()));
-            statement.setTime(4, new Time(task.getEndTime().getTime()));
+            statement.setLong(3, task.getStartTime().getTime());
+            statement.setLong(4, task.getEndTime().getTime());
             statement.setInt(5, task.getStatus().ordinal());
             statement.setInt(6, task.getPlan().getID());
             statement.setInt(7, task.getID());
