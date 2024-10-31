@@ -345,4 +345,5 @@ DART_API int test(){
 	
 	std::cout<<timestampToString(16776492);
 	
+	return 0;
 }
