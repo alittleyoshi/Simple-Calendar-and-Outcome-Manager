@@ -49,6 +49,14 @@ class MyAppState extends ChangeNotifier {
   }
 }
 
+// class CalendarState extends ChangeNotifier {
+//   var calendarIconIndex = 0;
+//
+//   void notify() {
+//     notifyListeners();
+//   }
+// }
+
 class MyHomePage extends StatefulWidget {
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -56,7 +64,6 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   var selectedIndex = 0;
-  var calendarIconIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -76,20 +83,22 @@ class _MyHomePageState extends State<MyHomePage> {
         throw UnimplementedError('no widget for $selectedIndex');
     }
 
-    IconData calendarIcon;
-    switch (calendarIconIndex) {
-      case 0:
-        calendarIcon = Icons.calendar_view_day;
-        break;
-      case 1:
-        calendarIcon = Icons.calendar_view_week;
-        break;
-      case 2:
-        calendarIcon = Icons.calendar_view_month;
-        break;
-      default:
-        throw UnimplementedError('no icon for $calendarIconIndex');
-    }
+    // var calendarState = context.watch<CalendarState>();
+
+    IconData calendarIcon = Icons.calendar_month;
+    // switch (calendarState.calendarIconIndex) {
+    //   case 0:
+    //     calendarIcon = Icons.calendar_view_day;
+    //     break;
+    //   case 1:
+    //     calendarIcon = Icons.calendar_view_week;
+    //     break;
+    //   case 2:
+    //     calendarIcon = Icons.calendar_view_month;
+    //     break;
+    //   default:
+    //     throw UnimplementedError('no icon for ${calendarState.calendarIconIndex}');
+    // }
 
     return LayoutBuilder(builder: (context, constraints) {
       return Scaffold(
@@ -206,6 +215,7 @@ class _TodoPageState extends State<TodoPage> {
               onDestinationSelected: (value){
                 setState(() {
                   selectedIndex = value;
+
                 });
               },
             ),
@@ -309,22 +319,190 @@ class CalendarPage extends StatefulWidget {
 }
 
 class _CalendarPageState extends State<CalendarPage> {
+  var selectedIndex = 0;
+
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
+    appState.init();
 
-    
+    // var calendarState = context.watch<CalendarState>();
 
-    return Scaffold();
+    Widget page;
+
+    switch (selectedIndex) {
+      case 0:
+        page = GeneratorHourPage();
+        break;
+      case 1:
+        page = GeneratorWeekPage();
+        break;
+      case 2:
+        page = GeneratorMonthPage();
+        break;
+      default:
+        throw UnimplementedError("No implemented for ${selectedIndex}");
+    }
+
+    return LayoutBuilder(builder: (context, constraints) {
+      return Scaffold(
+        body: Row(
+          children: [
+            SafeArea(
+              child: NavigationRail(
+                backgroundColor: Color.lerp(Colors.white, Theme.of(context).colorScheme.primaryContainer, 0.5),
+                extended: constraints.maxWidth >= 600,
+                destinations: [
+                  NavigationRailDestination(
+                    icon: Icon(Icons.calendar_view_day),
+                    label: Text('Hours'),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.calendar_view_week),
+                    label: Text('Week'),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.calendar_view_month),
+                    label: Text('Month'),
+                  ),
+                ],
+                selectedIndex: selectedIndex,
+                onDestinationSelected: (value){
+                  setState((){
+                    selectedIndex = value;
+                  });
+                },
+              ),
+            ),
+            Expanded(
+              child: Container(
+                color: Colors.white,
+                child: page,
+              ),
+            ),
+          ],
+        ),
+      );
+    });
+
   }
 }
 
-class GeneratorCalendarPage extends StatelessWidget {
+class GeneratorHourPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var begin_time = DateTime.now().add(Duration(hours: -1));
     var end_time = begin_time.add(Duration(hours: 12));
 
+
+
+    return Row(
+      children: [
+        SizedBox(width: 20),
+        Expanded(
+          child: Column(
+            children: [
+              Container(
+                alignment: Alignment.center,
+                color: Theme.of(context).colorScheme.primaryContainer,
+                child: Text(begin_time.toString()),
+              ),
+              Container(
+                alignment: Alignment.center,
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                child: Text(begin_time.add(Duration(hours: 1)).toString()),
+              ),
+              Container(
+                alignment: Alignment.center,
+                color: Theme.of(context).colorScheme.primaryContainer,
+                child: Text(begin_time.add(Duration(hours: 2)).toString()),
+              ),
+              Container(
+                alignment: Alignment.center,
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                child: Text(begin_time.add(Duration(hours: 3)).toString()),
+              ),
+              Container(
+                alignment: Alignment.center,
+                color: Theme.of(context).colorScheme.primaryContainer,
+                child: Text(begin_time.add(Duration(hours: 4)).toString()),
+              ),
+              Container(
+                alignment: Alignment.center,
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                child: Text(begin_time.add(Duration(hours: 5)).toString()),
+              ),
+              Container(
+                alignment: Alignment.center,
+                color: Theme.of(context).colorScheme.primaryContainer,
+                child: Text(begin_time.add(Duration(hours: 6)).toString()),
+              ),
+              Container(
+                alignment: Alignment.center,
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                child: Text(begin_time.add(Duration(hours: 7)).toString()),
+              ),
+              Container(
+                alignment: Alignment.center,
+                color: Theme.of(context).colorScheme.primaryContainer,
+                child: Text(begin_time.add(Duration(hours: 8)).toString()),
+              ),
+              Container(
+                alignment: Alignment.center,
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                child: Text(begin_time.add(Duration(hours: 9)).toString()),
+              ),
+              Container(
+                alignment: Alignment.center,
+                color: Theme.of(context).colorScheme.primaryContainer,
+                child: Text(begin_time.add(Duration(hours: 10)).toString()),
+              ),
+              Container(
+                alignment: Alignment.center,
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                child: Text(begin_time.add(Duration(hours: 11)).toString()),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(width: 20),
+      ],
+    );
+  }
+}
+
+class CalendarHourPageContainer extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Column(
+        children: [
+          Container(
+            alignment: Alignment.center,
+            color: Theme.of(context).colorScheme.primaryContainer,
+            child: SizedBox(height: 30, width: 100),
+          ),
+          Container(
+            alignment: Alignment.center,
+            color: Theme.of(context).colorScheme.tertiaryContainer,
+            child: Text(""),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class GeneratorWeekPage extends StatelessWidget{
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold();
+  }
+}
+
+class GeneratorMonthPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
     return Scaffold();
   }
 }
