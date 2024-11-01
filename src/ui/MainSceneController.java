@@ -34,5 +34,6 @@ public class MainSceneController implements Initializable {
 
     @FXML
     private void onTaskAddingAction(ActionEvent actionEvent) {
+        System.out.println("add task");
     }
 }
