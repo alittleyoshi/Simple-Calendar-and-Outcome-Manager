@@ -1,6 +1,7 @@
 package ui;
 
 import database.DatabaseManager;
+import database.Plan;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -9,7 +10,9 @@ import javafx.scene.control.*;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
+import ui.main.PlanControl;
 
+import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -48,6 +51,8 @@ public class MainSceneController implements Initializable {
             }
         });
         _planAddingStartDate.setValue(LocalDate.now());
+
+        flushPlanList();
     }
 
     @FXML
@@ -79,7 +84,16 @@ public class MainSceneController implements Initializable {
         if (_planAddingTitleText.getText().isEmpty()) {
             return;
         }
-        System.out.println(Date.from(_planAddingStartDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()));
-//        DatabaseManager.createPlan(_planAddingTitleText.getText(), _planAddingDescriptionText.getText(), new Date(), new Date());
+        DatabaseManager.createPlan(_planAddingTitleText.getText(), _planAddingDescriptionText.getText(), Date.from(_planAddingStartDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()), Date.from(_planAddingEndDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        flushPlanList();
+    }
+
+    @FXML
+    private VBox _planListBox;
+    private void flushPlanList() {
+        _planListBox.getChildren().clear();
+        for (Plan plan : DatabaseManager.getPlans()) {
+            _planListBox.getChildren().add(new PlanControl(plan));
+        }
     }
 }
