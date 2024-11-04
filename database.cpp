@@ -16,9 +16,9 @@ struct Task{
 	int status;	// 0 - not started, 1 - completed, 2 - emergency
 };
 
-Task query_result;
+Task query_result;	//每次查询后的结果存贮在这里
 
-int tasklist_num=0;
+int tasklist_num=0;	//list数量
 
 
 class DatabaseManager {
@@ -144,7 +144,7 @@ public:
 		long long startTime,
 		long long endTime,
 		int stat) {
-			std::string sql = "UPDATE "
+			std::string sql = "UPDATE TASKLIST"
 			+std::to_string(cur_tasklist)+" SET "
 			"TITLE = '" + title + "', "
 			"DESCRIPTION = '" + description + "', "
@@ -204,6 +204,34 @@ public:
 		std::cout << "Task status updated in TASKLIST"<<cur_tasklist<<" successfully" << std::endl;
 		return true;
 	}
+	
+	//根据list和id查找
+	bool queryTaskById(int list_id, int task_id) {
+		static int temp;
+		std::string sql = "SELECT * FROM TASKLIST"
+		+std::to_string(list_id)+
+		" WHERE ID = "
+		+std::to_string(task_id)+
+		";";
+		char* errMsg = 0;
+		
+		temp = list_id;
+		
+		auto callback = [](void* data, int argc, char** argv, char** azColName) {
+			query_result = {temp, std::stoi(argv[0]), argv[1], argv[2], argv[3], argv[4], argv[5][0] - '0'};
+			std::cout << std::endl;
+			return 0;
+		};
+		
+		int rc = sqlite3_exec(db, sql.c_str(), callback, 0, &errMsg);
+		
+		if (rc != SQLITE_OK) {
+			std::cout << "SQL error: " << errMsg << std::endl;
+			sqlite3_free(errMsg);
+			return false;
+		}
+		return true;
+	}
 };
 
 //TODO given list_id and id return Task
@@ -216,22 +244,10 @@ public:
 //		return Task{title,description,startTime,endTime,status};
 //}
 
-DART_API int query_tasklist_num(){
+DART_API int Dart_query_tasklist_num(){
 	return tasklist_num;
 }
 
-
-
-
-void output(Task result){
-	std::cout<<result.is_in_tasklist<<' '
-	<<result.id<<' '
-	<<result.title<<' '
-	<<result.description<<' '
-	<<result.startDate<<' '
-	<<result.endDate<<' '
-	<<result.status<<'\n';
-}
 
 std::string timestampToString(time_t timestamp) { 
 	std::tm* tm = std::localtime(&timestamp); 
@@ -240,10 +256,24 @@ std::string timestampToString(time_t timestamp) {
 	return ss.str();
 }
 
+void output(Task result){
+	std::cout<<result.is_in_tasklist<<' '
+	<<result.id<<' '
+	<<result.title<<' '
+	<<result.description<<' '
+	<<timestampToString(std::stoi(result.startDate))<<' '
+	<<timestampToString(std::stoi(result.endDate))<<' '
+	<<result.status<<'\n';
+}
+
+
+
 
 // 在main函数中使用这些新方法的示例：
+DatabaseManager* db;
 int main() {
 	DatabaseManager dbManager("tasks.db");
+	db=&dbManager;
 	
 	// 创建表
 	dbManager.createTable();
@@ -258,26 +288,8 @@ int main() {
 		1
 		);
 	
-	// 查询初始状态
-	std::cout << "\nQuery task:\n";
-	dbManager.queryTasks(0);
+	dbManager.queryTaskById(0,1);
 	output(query_result);
-	
-	dbManager.updateTaskStatus(0, 1, 2);
-	
-	dbManager.queryTasks(0);
-	output(query_result);
-	
-	dbManager.createTable();
-	
-	dbManager.insertTask(1,"task2","des2",114514,1919810,0);
-	
-	dbManager.queryTasks(0);
-	output(query_result);
-	dbManager.queryTasks(1);
-	output(query_result);
-	
-	std::cout<<timestampToString(16776492);
 	
 	// // 更新整个任务
 	// dbManager.updateTask(
@@ -307,8 +319,15 @@ int main() {
 	return 0;
 }
 
+DART_API Task Dart_get_task(int list_num,int task_id){
+	db->queryTaskById(list_num,task_id);
+	return query_result;
+}
 
-DART_API int test(){
+
+
+
+DART_API int Dart_test(){
 	DatabaseManager dbManager("tasks.db");
 	
 	// 创建表
