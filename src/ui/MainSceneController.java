@@ -3,6 +3,7 @@ package ui;
 import database.DatabaseManager;
 import database.Plan;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
@@ -44,10 +45,20 @@ public class MainSceneController implements Initializable {
                 _taskAddingEndDate.setValue(newValue);
             }
         });
+        _taskAddingEndDate.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue.isBefore(_taskAddingStartDate.getValue())) {
+                _taskAddingStartDate.setValue(_taskAddingEndDate.getValue());
+            }
+        });
         _taskAddingStartDate.setValue(LocalDate.now());
         _planAddingStartDate.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (_planAddingEndDate.getValue() == null || newValue.isAfter(_planAddingEndDate.getValue())) {
                 _planAddingEndDate.setValue(newValue);
+            }
+        });
+        _planAddingEndDate.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue.isBefore(_planAddingStartDate.getValue())) {
+                _planAddingStartDate.setValue(_planAddingEndDate.getValue());
             }
         });
         _planAddingStartDate.setValue(LocalDate.now());
@@ -71,6 +82,7 @@ public class MainSceneController implements Initializable {
         _planAddingPane.setVisible(true);
         _planAddingStartDate.setValue(LocalDate.now());
         _planAddingEndDate.setValue(LocalDate.now());
+        mouseEvent.consume();
     }
     @FXML
     private TextInputControl _taskAddingTitleText, _taskAddingDescriptionText, _planAddingTitleText, _planAddingDescriptionText;
@@ -93,7 +105,9 @@ public class MainSceneController implements Initializable {
     private void flushPlanList() {
         _planListBox.getChildren().clear();
         for (Plan plan : DatabaseManager.getPlans()) {
-            _planListBox.getChildren().add(new PlanControl(plan));
+            PlanControl planControl = new PlanControl(plan);
+//            planControl.setOnMouseClicked();
+            _planListBox.getChildren().add(planControl);
         }
     }
 }

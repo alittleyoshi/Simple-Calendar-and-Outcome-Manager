@@ -67,6 +67,36 @@ public final class Plan {
     void removeTask(Task task) {
         _tasks.remove(task);
     }
+    public Status getStatus() {
+        boolean hasUnstarted = false, hasCompleted = false;
+        for (Task task : _tasks) {
+            switch (task.getStatus()) {
+                case Working:
+                    return Status.Working;
+                case Unstarted:
+                    hasUnstarted = true;
+                    break;
+                case Completed:
+                    hasCompleted = true;
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (hasUnstarted) {
+            if (hasCompleted) {
+                return Status.Working;
+            } else {
+                return Status.Unstarted;
+            }
+        } else {
+            if (hasCompleted) {
+                return Status.Completed;
+            } else {
+                return Status.Unstarted;
+            }
+        }
+    }
     @Override
     public String toString() {
         return "Plan{" +

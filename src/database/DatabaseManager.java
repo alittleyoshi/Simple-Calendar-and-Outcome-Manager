@@ -48,7 +48,7 @@ public final class DatabaseManager {
             }
             for (ResultSet resultSet = statement.executeQuery("SELECT * FROM TASKS"); resultSet.next();) {
                 Plan belongPlan = map.get(resultSet.getInt(7));
-                Task task = new Task(resultSet.getInt(1), belongPlan, resultSet.getString(2), resultSet.getString(3), new Date(resultSet.getLong(4)), new Date(resultSet.getLong(5)), TaskStatus.fromInteger(resultSet.getInt(6)));
+                Task task = new Task(resultSet.getInt(1), belongPlan, resultSet.getString(2), resultSet.getString(3), new Date(resultSet.getLong(4)), new Date(resultSet.getLong(5)), Status.fromInteger(resultSet.getInt(6)));
                 _tasks.add(task);
                 belongPlan.addTask(task);
             }
@@ -106,11 +106,11 @@ public final class DatabaseManager {
             statement.setString(2, description);
             statement.setLong(3, startTime.getTime());
             statement.setLong(4, endTime.getTime());
-            statement.setInt(5, TaskStatus.Unstarted.ordinal());
+            statement.setInt(5, Status.Unstarted.ordinal());
             statement.setInt(6, plan.getID());
             statement.executeUpdate();
             try (ResultSet resultSet = statement.getGeneratedKeys()) {
-                Task task = new Task(resultSet.getInt(1), plan, title, description, startTime, endTime, TaskStatus.Unstarted);
+                Task task = new Task(resultSet.getInt(1), plan, title, description, startTime, endTime, Status.Unstarted);
                 plan.addTask(task);
                 _tasks.add(task);
                 return task;

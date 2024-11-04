@@ -13,8 +13,11 @@ import java.util.ResourceBundle;
 
 public class PlanControl extends AnchorPane implements Initializable {
     private final Plan _plan;
+    public Plan getPlan() {
+        return _plan;
+    }
     @FXML
-    private Label _titleLabel, _descriptionLabel;
+    private Label _statusLabel, _titleLabel, _descriptionLabel;
     public PlanControl(Plan plan) {
         _plan = plan;
         FXMLLoader loader = new FXMLLoader(PlanControl.class.getResource("/ui/main/plan scene.fxml"));
@@ -28,6 +31,7 @@ public class PlanControl extends AnchorPane implements Initializable {
     }
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        _statusLabel.setText(_plan.getStatus().getName());
         _titleLabel.setText(_plan.getTitle());
         _descriptionLabel.setText(_plan.getDescription());
     }

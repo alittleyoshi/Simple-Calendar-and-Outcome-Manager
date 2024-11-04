@@ -6,7 +6,7 @@ public final class Task {
     private final int _id;
     private Date _startTime, _endTime;
     private String _title, _description;
-    private TaskStatus _status;
+    private Status _status;
     private final Plan _plan;
     public int getID() {
         return _id;
@@ -42,14 +42,14 @@ public final class Task {
         _description = description;
         DatabaseManager.updateTask(this);
     }
-    public TaskStatus getStatus() {
+    public Status getStatus() {
         return _status;
     }
-    public void setStatus(TaskStatus status) {
+    public void setStatus(Status status) {
         _status = status;
         DatabaseManager.updateTask(this);
     }
-    public void setContext(String title, String description, Date startTime, Date endTime, TaskStatus status) {
+    public void setContext(String title, String description, Date startTime, Date endTime, Status status) {
         _title = title;
         _description = description;
         _startTime = startTime;
@@ -57,7 +57,7 @@ public final class Task {
         _status = status;
         DatabaseManager.updateTask(this);
     }
-    Task(int id, Plan plan, String title, String description, Date startTime, Date endTime, TaskStatus status) {
+    Task(int id, Plan plan, String title, String description, Date startTime, Date endTime, Status status) {
         _id = id;
         _plan = plan;
         _title = title;

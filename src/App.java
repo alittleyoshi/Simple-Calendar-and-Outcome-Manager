@@ -18,7 +18,7 @@ public class App extends Application {
     }
     @Override
     public void start(Stage primaryStage) throws Exception {
-        new PlanControl(DatabaseManager.createPlan("", "", new Date(), new Date()));
+//        new PlanControl(DatabaseManager.createPlan("", "", new Date(), new Date()));
         FXMLLoader loader = new FXMLLoader(App.class.getResource("/ui/main scene.fxml"));
         Parent parent = loader.load();
         Scene scene = new Scene(parent, parent.prefWidth(-1), parent.prefHeight(-1), true);
