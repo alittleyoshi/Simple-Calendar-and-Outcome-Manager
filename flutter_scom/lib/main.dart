@@ -10,7 +10,10 @@ DynamicLibrary _lib = Platform.isLinux ?
   DynamicLibrary.open('database.dll');
 
 final int Function() queryTaskListNum = _lib
-    .lookupFunction<Int32 Function(), int Function()>('query_tasklist_num');
+    .lookupFunction<Int32 Function(), int Function()>('Dart_query_tasklist_num');
+
+final int Function() testDll = _lib
+    .lookupFunction<Int32 Function(), int Function()>('Dart_test');
 
 
 void main() {
@@ -24,6 +27,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     var a = queryTaskListNum();
     print('${a}');
+    print('${testDll()}');
 
     return ChangeNotifierProvider(
       create: (context) => MyAppState(),
