@@ -9,9 +9,9 @@ DynamicLibrary _lib = Platform.isLinux ?
   DynamicLibrary.open('database.so') :
   DynamicLibrary.open('database.dll');
 
-final queryTaskListNum = _lib
-    .lookup<NativeFunction<Int32 Function()>>('query_tasklist_num')
-  .asFunction<int Function()>;
+final int Function() queryTaskListNum = _lib
+    .lookupFunction<Int32 Function(), int Function()>('query_tasklist_num');
+
 
 void main() {
   runApp(MyApp());
@@ -22,7 +22,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('${queryTaskListNum()}');
+    var a = queryTaskListNum();
+    print('${a}');
 
     return ChangeNotifierProvider(
       create: (context) => MyAppState(),
