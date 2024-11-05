@@ -41,20 +41,31 @@ public:
 	
 	int createTable() {
 		std::string pre = "CREATE TABLE IF NOT EXISTS TASKLIST"
-		+std::to_string(tasklist_num)+
+		+ std::to_string(tasklist_num) +
 		"("
-		"ID INTEGER PRIMARY KEY AUTOINCREMENT, "
+		"ID INTEGER PRIMARY KEY, "  // Removed AUTOINCREMENT
 		"TITLE TEXT NOT NULL, "
 		"DESCRIPTION TEXT, "
-		"START_TIME INTEGER NOT NULL, "  // long long for timestamp
-		"END_TIME INTEGER NOT NULL, "    // long long for timestamp
-		"STAT INTEGER NOT NULL);";      // int for status
+		"START_TIME INTEGER NOT NULL, "
+		"END_TIME INTEGER NOT NULL, "
+		"STAT INTEGER NOT NULL);";
 		const char* sql = pre.c_str();
 		
-		
 		char* errMsg = 0;
-		int rc = sqlite3_exec(db,  sql,  0,  0,  &errMsg);
+		int rc = sqlite3_exec(db, sql, 0, 0, &errMsg);
 		
+		if (rc != SQLITE_OK) {
+			std::cout << "SQL error: " << errMsg << std::endl;
+			sqlite3_free(errMsg);
+			return -1;
+		}
+		
+		// Insert new tasklist record
+		std::string insertList = "INSERT INTO TASKLISTS (TASK_NUM, LIST_NAME) VALUES (" 
+							+ std::to_string(0) + ", 'TASKLIST" 
+							+ std::to_string(tasklist_num) + "');";
+		
+		rc = sqlite3_exec(db, insertList.c_str(), 0, 0, &errMsg);
 		if (rc != SQLITE_OK) {
 			std::cout << "SQL error: " << errMsg << std::endl;
 			sqlite3_free(errMsg);
@@ -65,33 +76,45 @@ public:
 		tasklist_num++;
 		return tasklist_num;
 	}
+
 	
-	bool insertTask(int cur_tasklist, 
-		const std::string& title,  
-		const std::string& description,  
-		long long startTime, 
-		long long endTime, 
-		int stat) {
-			std::string sql = "INSERT INTO TASKLIST"
-			+std::to_string(cur_tasklist)+
-			"(TITLE,  DESCRIPTION,  START_TIME,  END_TIME,  STAT) "
-			"VALUES ('" + title + "',  '" + description + "',  " + 
-			std::to_string(startTime) + ",  " + 
-			std::to_string(endTime) + ",  " +
-			std::to_string(stat) + ");";
-			
-			char* errMsg = 0;
-			int rc = sqlite3_exec(db,  sql.c_str(),  0,  0,  &errMsg);
-			
-			if (rc != SQLITE_OK) {
-				std::cout << "SQL error: " << errMsg << std::endl;
-				sqlite3_free(errMsg);
-				return false;
-			}
-			
-			std::cout << "Task inserted into TASKLIST"<<cur_tasklist<<" successfully" << std::endl;
-			return true;
+	bool insertTask(int cur_tasklist,
+				int task_id,  // 新加入的task的id
+				const std::string& title,
+				const std::string& description,
+				long long startTime,
+				long long endTime,
+				int stat) {
+		std::string sql = "INSERT INTO TASKLIST"
+		+ std::to_string(cur_tasklist) +
+		"(ID, TITLE, DESCRIPTION, START_TIME, END_TIME, STAT) "
+		"VALUES (" + std::to_string(task_id) + ", '" + title + "', '" + description + "', " +
+		std::to_string(startTime) + ", " +
+		std::to_string(endTime) + ", " +
+		std::to_string(stat) + ");";
+		
+		char* errMsg = 0;
+		int rc = sqlite3_exec(db, sql.c_str(), 0, 0, &errMsg);
+		
+		if (rc != SQLITE_OK) {
+			std::cout << "SQL error: " << errMsg << std::endl;
+			sqlite3_free(errMsg);
+			return false;
 		}
+
+		std::string modifyList = "UPDATE TASKLISTS SET TASK_NUM = TASK_NUM + 1 WHERE LIST_ID = " + std::to_string(cur_tasklist) + ";";
+		rc = sqlite3_exec(db, modifyList.c_str(), 0, 0, &errMsg);
+		if (rc != SQLITE_OK) {
+			std::cout << "SQL error: " << errMsg << std::endl;
+			sqlite3_free(errMsg);
+			return false;
+		}
+
+		
+		std::cout << "Task inserted into TASKLIST" << cur_tasklist << " successfully" << std::endl;
+		return true;
+	}
+
 	
 	
 	bool queryTasks(int cur_tasklist) {
@@ -138,33 +161,33 @@ public:
 	}
 	
 	bool updateTask(int cur_tasklist, 
-		int id, 
-		const std::string& title, 
-		const std::string& description, 
-		long long startTime, 
-		long long endTime, 
-		int stat) {
-			std::string sql = "UPDATE TASKLIST"
-			+std::to_string(cur_tasklist)+" SET "
-			"TITLE = '" + title + "',  "
-			"DESCRIPTION = '" + description + "',  "
-			"START_TIME = " + std::to_string(startTime) + ",  "
-			"END_TIME = " + std::to_string(endTime) + ",  "
-			"STAT = " + std::to_string(stat) + " "
-			"WHERE ID = " + std::to_string(id) + ";";
-			
-			char* errMsg = 0;
-			int rc = sqlite3_exec(db,  sql.c_str(),  0,  0,  &errMsg);
-			
-			if (rc != SQLITE_OK) {
-				std::cout << "SQL error: " << errMsg << std::endl;
-				sqlite3_free(errMsg);
-				return false;
-			}
-			
-			std::cout << "Task updated in TASKLIST"<<cur_tasklist<<"successfully" << std::endl;
-			return true;
+	int id, 
+	const std::string& title, 
+	const std::string& description, 
+	long long startTime, 
+	long long endTime, 
+	int stat) {
+		std::string sql = "UPDATE TASKLIST"
+		+std::to_string(cur_tasklist)+" SET "
+		"TITLE = '" + title + "',  "
+		"DESCRIPTION = '" + description + "',  "
+		"START_TIME = " + std::to_string(startTime) + ",  "
+		"END_TIME = " + std::to_string(endTime) + ",  "
+		"STAT = " + std::to_string(stat) + " "
+		"WHERE ID = " + std::to_string(id) + ";";
+		
+		char* errMsg = 0;
+		int rc = sqlite3_exec(db,  sql.c_str(),  0,  0,  &errMsg);
+		
+		if (rc != SQLITE_OK) {
+			std::cout << "SQL error: " << errMsg << std::endl;
+			sqlite3_free(errMsg);
+			return false;
 		}
+		
+		std::cout << "Task updated in TASKLIST"<<cur_tasklist<<"successfully" << std::endl;
+		return true;
+	}
 	
 	// 更新单个字段的便捷方法
 	bool updateTaskTitle(int cur_tasklist, int id,  const std::string& title) {
@@ -232,6 +255,60 @@ public:
 		}
 		return true;
 	}
+
+	bool createTaskListTable() {
+		const char* sql = "CREATE TABLE IF NOT EXISTS TASKLISTS ("
+						"TASK_NUM INTEGER PRIMARY KEY, "	// 任务数量
+						"LIST_NAME TEXT NOT NULL);";
+		
+		char* errMsg = 0;
+		int rc = sqlite3_exec(db, sql, 0, 0, &errMsg);
+		
+		if (rc != SQLITE_OK) {
+			std::cout << "SQL error: " << errMsg << std::endl;
+			sqlite3_free(errMsg);
+			return false;
+		}
+		return true;
+	}
+
+	bool queryTaskLists() {
+		std::string sql = "SELECT * FROM TASKLISTS;";
+		char* errMsg = 0;
+		
+		auto callback = [](void* data, int argc, char** argv, char** azColName) {
+			std::cout << "Task num: " << argv[0] << ", Name: " << argv[1] << std::endl;
+			return 0;
+		};
+		
+		int rc = sqlite3_exec(db, sql.c_str(), callback, 0, &errMsg);
+		
+		if (rc != SQLITE_OK) {
+			std::cout << "SQL error: " << errMsg << std::endl;
+			sqlite3_free(errMsg);
+			return false;
+		}
+		return true;
+	}
+
+	int queryTaskNumFromList(int list_id) {
+		std::string sql = "SELECT TASK_NUM FROM TASKLISTS WHERE LIST_NAME = 'TASKLIST" + std::to_string(list_id) + "';";
+		char* errMsg = 0;
+		static int ret = 0;
+		auto callback = [](void* data, int argc, char** argv, char** azColName) {
+			ret = std::stoi(argv[0]);
+			std::cout << "Task num: " << argv[0] << std::endl;
+			return 0;
+		};
+		int rc = sqlite3_exec(db, sql.c_str(), callback, 0, &errMsg);
+		if (rc != SQLITE_OK) {
+			std::cout << "SQL error: " << errMsg << std::endl;
+			sqlite3_free(errMsg);
+			return false;
+		}
+		return ret;
+	}
+
 };
 
 //TODO given list_id and id return Task
@@ -271,49 +348,13 @@ void output(Task result){
 
 // 在main函数中使用这些新方法的示例：
 DatabaseManager* db;
-int main() {
+DART_API int Dart_init() {
 	DatabaseManager dbManager("tasks.db");
 	db=&dbManager;
 	
 	// 创建表
 	dbManager.createTable();
 	
-	// 插入示例数据
-	dbManager.insertTask(
-		0, 
-		"First title",  
-		"First desctription",  
-		16776492, 
-		16776528, 
-		1
-		);
-	
-	dbManager.queryTaskById(0, 1);
-	output(query_result);
-	
-	// // 更新整个任务
-	// dbManager.updateTask(
-	// 	1,                   // ID
-	// 	"Updated Meeting",   // 新标题
-	// 	"Updated description",  // 新描述
-	// 	1677649200000,      // 新开始时间
-	// 	1677652800000,      // 新结束时间
-	// 	2                  // 新状态
-	// 	);
-
-	// // 查询更新后的状态
-	// std::cout << "\nAfter full update:\n";
-	// dbManager.queryTasks();
-
-	// // 只更新标题
-	// dbManager.updateTaskTitle(1,  "Quick Meeting");
-
-	// // 只更新状态
-	// dbManager.updateTaskStatus(1,  3);
-	
-	// // 查询最终状态
-	// std::cout << "\nAfter partial updates:\n";
-	// dbManager.queryTasks();
 
 	system("pause");
 	return 0;
@@ -324,28 +365,25 @@ DART_API Task Dart_get_task(int list_num, int task_id){
 	return query_result;
 }
 
-DART_API bool Dart_create_task(int list_num, const char *title, const char *description, const char *startDate, const char *endDate, int status){
-	db->insertTask(list_num, title, description, std::stoi(startDate), std::stoi(endDate), status);
-	return 0;
+// 找个id填进去
+DART_API int Dart_create_task(int list_num, const char *title, const char *description, const char *startDate, const char *endDate, int status){
+	auto id = db->queryTaskNumFromList(list_num);
+	db->insertTask(list_num, id, title, description, std::stoi(startDate), std::stoi(endDate), status);
+	return id;
 }
 
 
 
 DART_API int Dart_test(){
 	DatabaseManager dbManager("tasks.db");
-	
+	db=&dbManager;
+
 	// 创建表
+	dbManager.createTaskListTable();
 	dbManager.createTable();
 	
 	// 插入示例数据
-	dbManager.insertTask(
-		0, 
-		"First title",  
-		"First desctription",  
-		16776492, 
-		16776528, 
-		1
-		);
+	Dart_create_task(0, "First title", "First desctription", "16776492", "16776528", 1);
 	
 	// 查询初始状态
 	std::cout << "\nQuery task:\n";
@@ -359,7 +397,7 @@ DART_API int Dart_test(){
 	
 	dbManager.createTable();
 	
-	dbManager.insertTask(1, "task2", "des2", 114514, 1919810, 0);
+	dbManager.insertTask(1, 1, "task2", "des2", 114514, 1919810, 0);
 	
 	dbManager.queryTasks(0);
 	output(query_result);
@@ -368,5 +406,11 @@ DART_API int Dart_test(){
 	
 	std::cout<<timestampToString(16776492);
 	
+	return 0;
+}
+
+int main() {
+	Dart_test();
+
 	return 0;
 }
