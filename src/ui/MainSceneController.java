@@ -3,17 +3,16 @@ package ui;
 import database.DatabaseManager;
 import database.Plan;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
-import ui.main.PlanControl;
+import ui.main.TogglePlanItem;
 
-import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -23,9 +22,6 @@ import java.util.ResourceBundle;
 public class MainSceneController implements Initializable {
     @FXML
     private ToggleGroup _tabButtonGroup;
-    @FXML
-    private VBox _planListVBox;
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         _tabButtonGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
@@ -67,17 +63,17 @@ public class MainSceneController implements Initializable {
     }
 
     @FXML
-    private Parent _tasksPane, _planAddingPane, _taskAddingPane;
+    private Parent _taskPane, _planAddingPane, _taskAddingPane;
     @FXML
     private void onTaskAddingAction(ActionEvent actionEvent) {
         _taskAddingPane.setVisible(true);
-        _tasksPane.setEffect(new GaussianBlur(5));
+        _taskPane.setEffect(new GaussianBlur(5));
         _taskAddingStartDate.setValue(LocalDate.now());
         _taskAddingEndDate.setValue(LocalDate.now());
     }
     @FXML
     private void onPlanAddingAction(MouseEvent mouseEvent) {
-        _tasksPane.setVisible(false);
+        _taskPane.setVisible(false);
         _taskAddingPane.setVisible(false);
         _planAddingPane.setVisible(true);
         _planAddingStartDate.setValue(LocalDate.now());
@@ -102,12 +98,26 @@ public class MainSceneController implements Initializable {
 
     @FXML
     private VBox _planListBox;
+    private ToggleGroup _planItemToggleGroup;
     private void flushPlanList() {
         _planListBox.getChildren().clear();
+        _planItemToggleGroup = new ToggleGroup();
+        _planItemToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue instanceof TogglePlanItem) {
+                TogglePlanItem planItem = (TogglePlanItem) newValue;
+                flushTaskPane(planItem.getPlan());
+            } else if (newValue == null) {
+                flushTaskPane(null);
+            }
+        });
         for (Plan plan : DatabaseManager.getPlans()) {
-            PlanControl planControl = new PlanControl(plan);
-//            planControl.setOnMouseClicked();
-            _planListBox.getChildren().add(planControl);
+            TogglePlanItem planItem = new TogglePlanItem(plan);
+            _planItemToggleGroup.getToggles().add(planItem);
+            _planListBox.getChildren().add(planItem);
         }
+    }
+
+    private void flushTaskPane(Plan plan) {
+
     }
 }

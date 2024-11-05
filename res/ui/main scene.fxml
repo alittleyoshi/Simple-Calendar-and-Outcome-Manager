@@ -59,7 +59,7 @@
                               </VBox>
                               <AnchorPane HBox.hgrow="ALWAYS">
                                  <children>
-                                    <AnchorPane fx:id="_tasksPane" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                    <AnchorPane fx:id="_taskPane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                        <children>
                                           <ScrollPane fitToHeight="true" fitToWidth="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                              <content>
@@ -96,7 +96,7 @@
                                           <Button mnemonicParsing="false" onAction="#onCreatingTaskAction" prefHeight="40.0" prefWidth="80.0" text="创建" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0" />
                                        </children>
                                     </AnchorPane>
-                                    <AnchorPane fx:id="_planAddingPane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                    <AnchorPane fx:id="_planAddingPane" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                        <children>
                                           <StackPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                              <children>

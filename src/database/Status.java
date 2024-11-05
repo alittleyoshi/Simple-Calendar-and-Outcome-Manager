@@ -10,12 +10,4 @@ public enum Status {
             default: return Unknown;
         }
     }
-    public String getName() {
-        switch (this) {
-            case Unstarted: return "未开始";
-            case Working: return "工作中";
-            case Completed: return "已完成";
-            default: return "未知";
-        }
-    }
 }
