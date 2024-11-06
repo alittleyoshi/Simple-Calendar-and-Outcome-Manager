@@ -14,7 +14,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.AccessibleAttribute;
 import javafx.scene.control.Label;
 import javafx.scene.control.Toggle;
-import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -25,16 +24,16 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class TogglePlanItem extends AnchorPane implements Initializable, Toggle {
+public class PlanItem extends AnchorPane implements Initializable, Toggle {
     private final Plan _plan;
     public Plan getPlan() {
         return _plan;
     }
     @FXML
     private Label _statusLabel, _titleLabel, _descriptionLabel;
-    public TogglePlanItem(Plan plan) {
+    public PlanItem(Plan plan) {
         _plan = plan;
-        FXMLLoader loader = new FXMLLoader(TogglePlanItem.class.getResource("/ui/main/plan scene.fxml"));
+        FXMLLoader loader = new FXMLLoader(PlanItem.class.getResource("/ui/main/plan scene.fxml"));
         loader.setRoot(this);
         loader.setController(this);
         try {
@@ -77,21 +76,21 @@ public class TogglePlanItem extends AnchorPane implements Initializable, Toggle 
                 @Override
                 protected void invalidated() {
                     ToggleGroup tg = get();
-                    if (tg != null && !tg.getToggles().contains(TogglePlanItem.this)) {
+                    if (tg != null && !tg.getToggles().contains(PlanItem.this)) {
                         if (toggleGroup != null) {
-                            toggleGroup.getToggles().remove(TogglePlanItem.this);
+                            toggleGroup.getToggles().remove(PlanItem.this);
                         }
-                        tg.getToggles().add(TogglePlanItem.this);
+                        tg.getToggles().add(PlanItem.this);
                         tg.selectedToggleProperty().addListener(changeListener);
                     } else if (tg == null) {
                         toggleGroup.selectedToggleProperty().removeListener(changeListener);
-                        toggleGroup.getToggles().remove(TogglePlanItem.this);
+                        toggleGroup.getToggles().remove(PlanItem.this);
                     }
                     toggleGroup = tg;
                 }
                 @Override
                 public Object getBean() {
-                    return TogglePlanItem.this;
+                    return PlanItem.this;
                 }
                 @Override
                 public String getName() {
@@ -122,15 +121,15 @@ public class TogglePlanItem extends AnchorPane implements Initializable, Toggle 
                     notifyAccessibleAttributeChanged(AccessibleAttribute.SELECTED);
                     if (toggleGroup != null) {
                         if (selected) {
-                            toggleGroup.selectToggle(TogglePlanItem.this);
-                        } else if (toggleGroup.getSelectedToggle() == TogglePlanItem.this) {
+                            toggleGroup.selectToggle(PlanItem.this);
+                        } else if (toggleGroup.getSelectedToggle() == PlanItem.this) {
                             toggleGroup.selectToggle(null);
                         }
                     }
                 }
                 @Override
                 public Object getBean() {
-                    return TogglePlanItem.this;
+                    return PlanItem.this;
                 }
                 @Override
                 public String getName() {

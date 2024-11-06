@@ -2,6 +2,7 @@ package ui;
 
 import database.DatabaseManager;
 import database.Plan;
+import database.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -9,9 +10,8 @@ import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
-import ui.main.TogglePlanItem;
+import ui.main.PlanItem;
 
 import java.net.URL;
 import java.time.LocalDate;
@@ -103,21 +103,39 @@ public class MainSceneController implements Initializable {
         _planListBox.getChildren().clear();
         _planItemToggleGroup = new ToggleGroup();
         _planItemToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue instanceof TogglePlanItem) {
-                TogglePlanItem planItem = (TogglePlanItem) newValue;
+            if (newValue instanceof PlanItem) {
+                PlanItem planItem = (PlanItem) newValue;
                 flushTaskPane(planItem.getPlan());
+                _taskPane.setEffect(null);
+                _taskPane.setVisible(true);
+                _taskAddingPane.setVisible(false);
+                _planAddingPane.setVisible(false);
             } else if (newValue == null) {
-                flushTaskPane(null);
+                _taskPane.setVisible(false);
+                _taskAddingPane.setVisible(false);
+                _planAddingPane.setVisible(false);
             }
         });
         for (Plan plan : DatabaseManager.getPlans()) {
-            TogglePlanItem planItem = new TogglePlanItem(plan);
+            PlanItem planItem = new PlanItem(plan);
             _planItemToggleGroup.getToggles().add(planItem);
             _planListBox.getChildren().add(planItem);
         }
     }
-
+    @FXML
+    private Label _planTitleLabel;
+    @FXML
+    private VBox _planTasksBox;
     private void flushTaskPane(Plan plan) {
-
+        if (plan == null) {
+            _planTitleLabel.setText("请选择一个任务");
+            _planTasksBox.getChildren().clear();
+        } else {
+            _planTitleLabel.setText(plan.getTitle());
+            _planTasksBox.getChildren().clear();
+            for (Task task : plan.getTasks()) {
+                _planTasksBox.getChildren().add()
+            }
+        }
     }
 }
