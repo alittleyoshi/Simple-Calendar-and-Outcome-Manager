@@ -47,7 +47,6 @@ public class PlanItem extends AnchorPane implements Initializable, Toggle {
         Status planStatus = _plan.getStatus();
         _statusLabel.setText(DatabaseResource.getStatusName(planStatus));
         Color planStatusColor = DatabaseResource.getStatucsColor(planStatus);
-//        _statusLabel.setStyle("-fx-text-fill: rgba(1.0, 0.0, 0.0, 1.0);");
         _statusLabel.setStyle(String.format("-fx-text-fill: rgba(%f, %f, %f, %f);", planStatusColor.getRed() * 256, planStatusColor.getGreen() * 256, planStatusColor.getBlue() * 256, planStatusColor.getOpacity()));
         _titleLabel.setText(_plan.getTitle());
         _descriptionLabel.setText(_plan.getDescription());

@@ -59,7 +59,7 @@
                               </VBox>
                               <AnchorPane HBox.hgrow="ALWAYS">
                                  <children>
-                                    <AnchorPane fx:id="_taskPane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                    <AnchorPane fx:id="_taskPane" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                        <children>
                                           <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                              <children>
@@ -85,7 +85,7 @@
                                           </VBox>
                                           <Button mnemonicParsing="false" onAction="#onTaskAddingAction" prefHeight="30.0" prefWidth="30.0" text="+" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0" />
                                        </children></AnchorPane>
-                                    <AnchorPane fx:id="_taskAddingPane" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                    <AnchorPane fx:id="_taskAddingPane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                        <children>
                                           <StackPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                              <children>
@@ -110,7 +110,12 @@
                                                    </padding>
                                                 </VBox>
                                              </children></StackPane>
-                                          <Button mnemonicParsing="false" onAction="#onCreatingTaskAction" prefHeight="40.0" prefWidth="80.0" text="创建" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0" />
+                                          <HBox spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0">
+                                             <children>
+                                                <Button mnemonicParsing="false" onAction="#onCancellingTaskAction" prefHeight="40.0" prefWidth="80.0" text="取消" />
+                                                <Button mnemonicParsing="false" onAction="#onCreatingTaskAction" prefHeight="40.0" prefWidth="80.0" text="创建" />
+                                             </children>
+                                          </HBox>
                                        </children>
                                     </AnchorPane>
                                     <AnchorPane fx:id="_planAddingPane" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">

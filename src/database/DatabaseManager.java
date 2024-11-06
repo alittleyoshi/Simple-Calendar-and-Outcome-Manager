@@ -72,32 +72,41 @@ public final class DatabaseManager {
             throw new RuntimeException(e);
         }
     }
-    public static void updatePlan(Plan plan) {
-        try (PreparedStatement statement = _connection.prepareStatement("UPDATE PLANS SET TITLE = ?, DESCRIPTION = ?, START_TIME = ?, END_TIME = ? WHERE id = ?")) {
-            statement.setString(1, plan.getTitle());
-            statement.setString(2, plan.getDescription());
-            statement.setLong(3, plan.getStartTime().getTime());
-            statement.setLong(4, plan.getEndTime().getTime());
-            statement.setInt(5, plan.getID());
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+    public static boolean updatePlan(Plan plan) {
+        if (_plans.contains(plan)) {
+            try (PreparedStatement statement = _connection.prepareStatement("UPDATE PLANS SET TITLE = ?, DESCRIPTION = ?, START_TIME = ?, END_TIME = ? WHERE id = ?")) {
+                statement.setString(1, plan.getTitle());
+                statement.setString(2, plan.getDescription());
+                statement.setLong(3, plan.getStartTime().getTime());
+                statement.setLong(4, plan.getEndTime().getTime());
+                statement.setInt(5, plan.getID());
+                statement.executeUpdate();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+            return true;
+        } else {
+            return false;
         }
     }
-    public static void removePlan(Plan plan) {
+    public static boolean removePlan(Plan plan) {
         _tasks.removeAll(plan.getTasks());
-        _plans.remove(plan);
-        try {
-            try (PreparedStatement statement = _connection.prepareStatement("DELETE FROM TASKS WHERE BELONG = ?")) {
-                statement.setInt(1, plan.getID());
-                statement.executeUpdate();
+        if (_plans.remove(plan)) {
+            try {
+                try (PreparedStatement statement = _connection.prepareStatement("DELETE FROM TASKS WHERE BELONG = ?")) {
+                    statement.setInt(1, plan.getID());
+                    statement.executeUpdate();
+                }
+                try (PreparedStatement statement = _connection.prepareStatement("DELETE FROM PLANS WHERE ID = ?")) {
+                    statement.setInt(1, plan.getID());
+                    statement.executeUpdate();
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
-            try (PreparedStatement statement = _connection.prepareStatement("DELETE FROM PLANS WHERE ID = ?")) {
-                statement.setInt(1, plan.getID());
-                statement.executeUpdate();
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+            return true;
+        } else {
+            return false;
         }
     }
     public static Task createTask(Plan plan, String title, String description, Date startTime, Date endTime) {
@@ -119,28 +128,37 @@ public final class DatabaseManager {
             throw new RuntimeException(e);
         }
     }
-    public static void updateTask(Task task) {
-        try (PreparedStatement statement = _connection.prepareStatement("UPDATE TASKS SET TITLE = ?, DESCRIPTION = ?, START_TIME = ?, END_TIME = ?, STATUS = ?, BELONG = ? WHERE id = ?")) {
-            statement.setString(1, task.getTitle());
-            statement.setString(2, task.getDescription());
-            statement.setLong(3, task.getStartTime().getTime());
-            statement.setLong(4, task.getEndTime().getTime());
-            statement.setInt(5, task.getStatus().ordinal());
-            statement.setInt(6, task.getPlan().getID());
-            statement.setInt(7, task.getID());
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+    public static boolean updateTask(Task task) {
+        if (_tasks.contains(task)) {
+            try (PreparedStatement statement = _connection.prepareStatement("UPDATE TASKS SET TITLE = ?, DESCRIPTION = ?, START_TIME = ?, END_TIME = ?, STATUS = ?, BELONG = ? WHERE id = ?")) {
+                statement.setString(1, task.getTitle());
+                statement.setString(2, task.getDescription());
+                statement.setLong(3, task.getStartTime().getTime());
+                statement.setLong(4, task.getEndTime().getTime());
+                statement.setInt(5, task.getStatus().ordinal());
+                statement.setInt(6, task.getPlan().getID());
+                statement.setInt(7, task.getID());
+                statement.executeUpdate();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+            return true;
+        } else {
+            return false;
         }
     }
-    public static void removeTask(Task task) {
+    public static boolean removeTask(Task task) {
         task.getPlan().removeTask(task);
-        _tasks.remove(task);
-        try (PreparedStatement statement = _connection.prepareStatement("DELETE FROM TASKS WHERE ID = ?")) {
-            statement.setInt(1, task.getID());
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        if (_tasks.remove(task)) {
+            try (PreparedStatement statement = _connection.prepareStatement("DELETE FROM TASKS WHERE ID = ?")) {
+                statement.setInt(1, task.getID());
+                statement.executeUpdate();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+            return true;
+        } else {
+            return false;
         }
     }
     private DatabaseManager() {}

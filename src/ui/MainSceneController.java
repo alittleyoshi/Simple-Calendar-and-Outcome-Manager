@@ -12,6 +12,7 @@ import javafx.scene.effect.GaussianBlur;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import ui.main.PlanItem;
+import ui.main.TaskItem;
 
 import java.net.URL;
 import java.time.LocalDate;
@@ -25,7 +26,6 @@ public class MainSceneController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         _tabButtonGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
-//            System.out.println("oldValue: " + oldValue + " oldUserData: " + oldValue.getUserData() + " newValue: " + newValue + " newUserData: " + newValue.getUserData());
             if (newValue == null) {
                 oldValue.setSelected(true);
             } else {
@@ -86,6 +86,11 @@ public class MainSceneController implements Initializable {
     private DatePicker _taskAddingStartDate, _taskAddingEndDate, _planAddingStartDate, _planAddingEndDate;
     @FXML
     private void onCreatingTaskAction(ActionEvent actionEvent) {
+        if (_taskAddingTitleText.getText().isEmpty()) {
+            return;
+        }
+        DatabaseManager.createTask((Plan)_taskPane.getUserData(), _taskAddingTitleText.getText(), _taskAddingDescriptionText.getText(), Date.from(_taskAddingStartDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()), Date.from(_taskAddingEndDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        flushTaskPane((Plan)_taskPane.getUserData());
     }
     @FXML
     private void onCreatingPlanAction(ActionEvent actionEvent) {
@@ -95,13 +100,21 @@ public class MainSceneController implements Initializable {
         DatabaseManager.createPlan(_planAddingTitleText.getText(), _planAddingDescriptionText.getText(), Date.from(_planAddingStartDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()), Date.from(_planAddingEndDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()));
         flushPlanList();
     }
+    @FXML
+    public void onCancellingTaskAction(ActionEvent actionEvent) {
+        _taskPane.setEffect(null);
+        _taskAddingPane.setVisible(false);
+    }
+    @FXML
+    public void onCancellingPlanAction(ActionEvent actionEvent) {
+        _planAddingPane.setVisible(false);
+    }
 
     @FXML
     private VBox _planListBox;
-    private ToggleGroup _planItemToggleGroup;
     private void flushPlanList() {
         _planListBox.getChildren().clear();
-        _planItemToggleGroup = new ToggleGroup();
+        ToggleGroup _planItemToggleGroup = new ToggleGroup();
         _planItemToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue instanceof PlanItem) {
                 PlanItem planItem = (PlanItem) newValue;
@@ -127,15 +140,12 @@ public class MainSceneController implements Initializable {
     @FXML
     private VBox _planTasksBox;
     private void flushTaskPane(Plan plan) {
-        if (plan == null) {
-            _planTitleLabel.setText("请选择一个任务");
-            _planTasksBox.getChildren().clear();
-        } else {
-            _planTitleLabel.setText(plan.getTitle());
-            _planTasksBox.getChildren().clear();
-            for (Task task : plan.getTasks()) {
-                _planTasksBox.getChildren().add()
-            }
+        _taskPane.setUserData(plan);
+        _planTitleLabel.setText(plan.getTitle());
+        _planTasksBox.getChildren().clear();
+        for (Task task : plan.getTasks()) {
+            _planTasksBox.getChildren().add(new TaskItem(task));
         }
     }
+
 }
