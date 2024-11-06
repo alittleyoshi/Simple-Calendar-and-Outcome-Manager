@@ -9,29 +9,41 @@ DynamicLibrary _lib = Platform.isLinux ?
   DynamicLibrary.open('database.so') :
   DynamicLibrary.open('database.dll');
 
-final int Function() initDatabaseC = _lib
+final initDatabaseC = _lib
     .lookupFunction<Int32 Function(), int Function()>
   ('Dart_init');
 
-final int Function() queryTaskListNum = _lib
+final queryTaskListNum = _lib
     .lookupFunction<Int32 Function(), int Function()>
   ('Dart_query_tasklist_num');
 
-final int Function(int) queryTaskNum = _lib
-    .lookupFunction<Int32 Function(Int32), int Function(int)>
+final queryTaskNum = _lib
+    .lookupFunction<Int32 Function(Int32 listId), int Function(int listID)>
   ('Dart_query_task_num');
 
-final TaskC Function(int, int) getTaskC = _lib
-    .lookupFunction<TaskC Function(Int32, Int32), TaskC Function(int, int)>
+final getTaskC = _lib
+    .lookupFunction<TaskC Function(Int32 listId, Int32 taskId), TaskC Function(int listId, int taskId)>
   ('Dart_get_task');
 
-final int Function(int, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, int) addTaskC = _lib
+final addTaskC = _lib
     .lookupFunction<Int32 Function(Int32, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Int32), int Function(int, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, int)>
   ('Dart_create_task');
 
-final int Function() testDll = _lib
+final testDll = _lib
     .lookupFunction<Int32 Function(), int Function()>
   ('Dart_test');
+
+final test1 = _lib
+    .lookupFunction<Int32 Function(), int Function()>
+  ('Dart_test_f1');
+
+final test2 = _lib
+    .lookupFunction<Void Function(), void Function()>
+  ('Dart_test_f2');
+
+final test3 = _lib
+    .lookupFunction<Int32 Function(Int32 val), int Function(int val)>
+  ('Dart_test_f3');
 
 void main() {
   runApp(MyApp());
@@ -60,30 +72,44 @@ class MyAppState extends ChangeNotifier {
   var initialized = false;
 
   void init() {
+    // print("${test1()}");
+    // test2();
+    // print("${test3(2)}");
     if (!initialized) {
       initDatabaseC();
+      // print("${queryTaskNum(0)}");
       var listNum = queryTaskListNum();
       print("listNum: $listNum");
+      // print("${queryTaskNum(100)}");
       for (var i = 0; i < listNum; i++) {
         var list = TodoList();
         list.id = i;
         var taskNum = queryTaskNum(i);
+        // print("1");
         print("List$i, taskNum: $taskNum");
         for (var j = 0; j < taskNum; j++) {
           var taskC = getTaskC(i, j);
+          print(1);
           var task = changeTaskCtoTask(taskC);
+          print(2);
           list.taskList.add(task);
+          print(3);
         }
         todoList.add(list);
       }
+      // print("${test1()}");
+      // test2();
+      // print("${test3(3)}");
+      // initDatabaseC();
       initialized = true;
       // notifyListeners();
     }
   }
 
   void addTask(int listIndex, String title, String description, DateTime startTime, DateTime endTime, int status) {
-    var newTask = Task(0, title, description, startTime, endTime, status);
+    var newTask = Task(listIndex, 0, title, description, startTime, endTime, status);
     var newTaskId = addTaskC(listIndex, newTask.title.toNativeUtf8(), newTask.description.toNativeUtf8(), newTask.startTime.toIso8601String().toNativeUtf8(), newTask.endTime.toIso8601String().toNativeUtf8(), newTask.stat);
+    print("$newTaskId");
     newTask.id = newTaskId;
     todoList[listIndex].taskList.add(newTask);
     notifyListeners();
@@ -186,6 +212,9 @@ class TodoPage extends StatefulWidget {
 }
 
 final class TaskC extends Struct {
+  @Int32()
+  external int listId, id;
+
   external Pointer<Utf8> title, description, startTime, endTime;
 
   @Int32()
@@ -193,6 +222,7 @@ final class TaskC extends Struct {
 }
 
 class Task {
+  var listId = 0;
   var id = 0;
   var title = 'Task 1';
   var description = 'Task description.';
@@ -200,11 +230,11 @@ class Task {
   var endTime = DateTime.now();
   var stat = 0;
 
-  Task(this.id, this.title, this.description, this.startTime, this.endTime, this.stat);
+  Task(this.listId, this.id, this.title, this.description, this.startTime, this.endTime, this.stat);
 }
 
 Task changeTaskCtoTask(TaskC task) {
-  return Task(0, task.title.toDartString(), task.description.toDartString(), DateTime.parse(task.startTime.toDartString()), DateTime.parse(task.endTime.toDartString()), task.status);
+  return Task(task.listId, 0, task.title.toDartString(), task.description.toDartString(), DateTime.parse(task.startTime.toDartString()), DateTime.parse(task.endTime.toDartString()), task.status);
 }
 
 // TaskC changeTaskCtoTask(Task task) {
@@ -234,14 +264,14 @@ class _TodoPageState extends State<TodoPage> {
 
     Widget page;
 
-    print("${appState.todoList}");
+    // print("${appState.todoList}");
 
     var destination = appState.todoList.map((list) => NavigationRailDestination(
         icon: Icon(Icons.star),
         label: Text("Todo List ${list.id + 1}"),
     )).toList();
 
-    print("$destination");
+    // print("$destination");
 
     page = GeneratorTodoPage(listIndex: selectedIndex);
 
@@ -299,11 +329,6 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
         onPressed: () {
           setState(() {
             appState.addTask(0, 'eltiT', 'Todo2', DateTime.now(), DateTime.now(), 1);
-            // appState.todoList[widget.listIndex].taskList.add(Task(1, 'eltiT', 'Todo2', DateTime.now(), DateTime.now(), 1));
-            // appState.todoList[widget.listIndex].taskList.add(Task(1, 'eltiT', 'Todo2', DateTime.now(), DateTime.now(), 1));
-            // appState.todoList[widget.listIndex].taskList.add(Task(1, 'eltiT', 'Todo2', DateTime.now(), DateTime.now(), 1));
-            // appState.todoList[widget.listIndex].taskList.add(Task(1, 'eltiT', 'Todo2', DateTime.now(), DateTime.now(), 1));
-            // appState.todoList[widget.listIndex].taskList.add(Task(1, 'eltiT', 'Todo2', DateTime.now(), DateTime.now(), 1));
           });
         },
       ),
