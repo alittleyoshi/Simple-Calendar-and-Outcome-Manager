@@ -22,7 +22,7 @@
                <children>
                   <HBox>
                      <children>
-                        <ToggleButton fx:id="_unstartedButton" mnemonicParsing="false" text="未完成">
+                        <ToggleButton fx:id="_unstartedButton" mnemonicParsing="false" text="未开始">
                            <toggleGroup>
                               <ToggleGroup fx:id="_statusGroup" />
                            </toggleGroup>

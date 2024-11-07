@@ -3,17 +3,15 @@ package ui.main;
 import database.DatabaseManager;
 import database.Status;
 import database.Task;
-import javafx.event.ActionEvent;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ObjectPropertyBase;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import resource.DatabaseResource;
 
@@ -81,23 +79,53 @@ public class TaskItem extends AnchorPane implements Initializable {
                 } else {
                     status = Status.Unknown;
                 }
-                _task.setStatus(status);
+                setStatus(status);
             }
         });
-        switch (_task.getStatus()) {
-            case Working: {
-                _workingButton.setSelected(true);
-                break;
-            }
-            case Completed: {
-                _completedButton.setSelected(true);
-                break;
-            }
-            default: {
-                _unstartedButton.setSelected(true);
-                break;
-            }
+        setStatus(_task.getStatus());
+    }
+    private ObjectProperty<Status> status;
+    public Status getStatus() {
+        return status == null ? Status.Unknown : statusProperty().get();
+    }
+    public void setStatus(Status status) {
+        statusProperty().set(status);
+    }
+    public ObjectProperty<Status> statusProperty() {
+        if (status == null) {
+            status = new ObjectPropertyBase<Status>() {
+                @Override
+                protected void invalidated() {
+                    _task.setStatus(get());
+                    switch (get()) {
+                        case Unstarted: {
+                            _unstartedButton.setSelected(true);
+                            break;
+                        }
+                        case Working: {
+                            _workingButton.setSelected(true);
+                            break;
+                        }
+                        case Completed: {
+                            _completedButton.setSelected(true);
+                            break;
+                        }
+                        default: {
+                            break;
+                        }
+                    }
+                }
+                @Override
+                public Object getBean() {
+                    return TaskItem.this;
+                }
+                @Override
+                public String getName() {
+                    return "status";
+                }
+            };
         }
+        return status;
     }
     @FXML
     private void onTitleLabelClicked(MouseEvent mouseEvent) {

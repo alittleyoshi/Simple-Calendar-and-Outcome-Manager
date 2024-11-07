@@ -10,6 +10,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import ui.main.PlanItem;
 import ui.main.TaskItem;
@@ -63,7 +64,7 @@ public class MainSceneController implements Initializable {
     }
 
     @FXML
-    private Parent _taskPane, _planAddingPane, _taskAddingPane;
+    private Pane _taskPane, _planAddingPane, _taskAddingPane, _planEditingPane;
     @FXML
     private void onTaskAddingAction(ActionEvent actionEvent) {
         _taskAddingPane.setVisible(true);
@@ -76,6 +77,7 @@ public class MainSceneController implements Initializable {
         _taskPane.setVisible(false);
         _taskAddingPane.setVisible(false);
         _planAddingPane.setVisible(true);
+        _planEditingPane.setVisible(false);
         _planAddingStartDate.setValue(LocalDate.now());
         _planAddingEndDate.setValue(LocalDate.now());
         mouseEvent.consume();
@@ -85,29 +87,39 @@ public class MainSceneController implements Initializable {
     @FXML
     private DatePicker _taskAddingStartDate, _taskAddingEndDate, _planAddingStartDate, _planAddingEndDate;
     @FXML
-    private void onCreatingTaskAction(ActionEvent actionEvent) {
+    private Label _planAddingTitleErrorHintLabel;
+    @FXML
+    private void onCreatingTaskAction() {
         if (_taskAddingTitleText.getText().isEmpty()) {
             return;
         }
-        DatabaseManager.createTask((Plan)_taskPane.getUserData(), _taskAddingTitleText.getText(), _taskAddingDescriptionText.getText(), Date.from(_taskAddingStartDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()), Date.from(_taskAddingEndDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        flushTaskPane((Plan)_taskPane.getUserData());
+        DatabaseManager.createTask(((PlanItem)_taskPane.getUserData()).getPlan(), _taskAddingTitleText.getText(), _taskAddingDescriptionText.getText(), Date.from(_taskAddingStartDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()), Date.from(_taskAddingEndDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        flushTaskPane((PlanItem) _taskPane.getUserData());
+        flushPlanList();
     }
     @FXML
-    private void onCreatingPlanAction(ActionEvent actionEvent) {
+    private void onCreatingPlanAction() {
         if (_planAddingTitleText.getText().isEmpty()) {
+            _planAddingTitleErrorHintLabel.setVisible(true);
             return;
+        } else {
+            _planAddingTitleErrorHintLabel.setVisible(false);
         }
         DatabaseManager.createPlan(_planAddingTitleText.getText(), _planAddingDescriptionText.getText(), Date.from(_planAddingStartDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()), Date.from(_planAddingEndDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()));
         flushPlanList();
     }
     @FXML
-    public void onCancellingTaskAction(ActionEvent actionEvent) {
+    private void onEditedPlanAction() {
+    }
+    @FXML
+    public void onCancellingTaskAction() {
         _taskPane.setEffect(null);
         _taskAddingPane.setVisible(false);
     }
     @FXML
-    public void onCancellingPlanAction(ActionEvent actionEvent) {
+    public void onCancellingPlanAction() {
         _planAddingPane.setVisible(false);
+        _planEditingPane.setVisible(false);
     }
 
     @FXML
@@ -118,15 +130,14 @@ public class MainSceneController implements Initializable {
         _planItemToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue instanceof PlanItem) {
                 PlanItem planItem = (PlanItem) newValue;
-                flushTaskPane(planItem.getPlan());
+                flushTaskPane(planItem);
                 _taskPane.setEffect(null);
                 _taskPane.setVisible(true);
                 _taskAddingPane.setVisible(false);
                 _planAddingPane.setVisible(false);
+                _planEditingPane.setVisible(false);
             } else if (newValue == null) {
-                _taskPane.setVisible(false);
-                _taskAddingPane.setVisible(false);
-                _planAddingPane.setVisible(false);
+                oldValue.setSelected(true);
             }
         });
         for (Plan plan : DatabaseManager.getPlans()) {
@@ -139,12 +150,17 @@ public class MainSceneController implements Initializable {
     private Label _planTitleLabel;
     @FXML
     private VBox _planTasksBox;
-    private void flushTaskPane(Plan plan) {
-        _taskPane.setUserData(plan);
-        _planTitleLabel.setText(plan.getTitle());
+    private void flushTaskPane(PlanItem planItem) {
+        _taskPane.setUserData(planItem);
+        Plan plan = planItem.getPlan();
+        _planTitleLabel.textProperty().bind(planItem.titleProperty());
         _planTasksBox.getChildren().clear();
         for (Task task : plan.getTasks()) {
-            _planTasksBox.getChildren().add(new TaskItem(task));
+            TaskItem taskItem = new TaskItem(task);
+            taskItem.statusProperty().addListener((observable, oldValue, newValue) -> {
+                planItem.flushPlanStatus();
+            });
+            _planTasksBox.getChildren().add(taskItem);
         }
     }
 
