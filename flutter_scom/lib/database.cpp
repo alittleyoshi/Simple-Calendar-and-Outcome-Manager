@@ -2,6 +2,7 @@
 #include <chrono>
 #include <iomanip>
 #include <sqlite3.h>
+#include <string.h>
 #include <string>
 
 #define DART_API extern "C" __attribute__((visibility("default"))) __attribute__((used))
@@ -16,6 +17,16 @@ struct Task{
 	int status;	// 0 - not started,  1 - completed,  2 - emergency
 };
 
+struct Dart_Task{
+	int list_id;
+	int id;
+	char* title;
+	char* description;
+	char* startDate;
+	char* endDate;
+	int status;	// 0 - not started,  1 - completed,  2 - emergency
+};
+
 Task query_result;	//每次查询后的结果存贮在这里
 
 int tasklist_num=0;	//list数量
@@ -27,6 +38,14 @@ std::string timestampToString(time_t timestamp) {
 	return ss.str();
 }
 
+time_t string_to_timestamp(std::string timestamp) {
+	std::tm tm = {};
+	std::istringstream ss(timestamp);
+	std::cout << timestamp << std::endl;
+	ss >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%S");
+	return mktime(&tm);
+}
+
 void output(Task result){
 	std::cout<<result.list_id<<' '
 	<<result.id<<' '
@@ -35,6 +54,29 @@ void output(Task result){
 	<<timestampToString(std::stoi(result.startDate))<<' '
 	<<timestampToString(std::stoi(result.endDate))<<' '
 	<<result.status<<std::endl;
+}
+
+Dart_Task covert_task_dart_task(Task task){
+	Dart_Task dart_task;
+	dart_task.list_id = task.list_id;
+	dart_task.id = task.id;
+
+	dart_task.title = new char [task.title.length() + 1];
+	strcpy(dart_task.title, task.title.c_str());
+	dart_task.description = new char [task.description.length() + 1];
+	strcpy(dart_task.description, task.description.c_str());
+	dart_task.startDate = new char [task.startDate.length() + 1];
+	strcpy(dart_task.startDate, task.startDate.c_str());
+	dart_task.endDate = new char [task.endDate.length() + 1];
+	strcpy(dart_task.endDate, task.endDate.c_str());
+
+	// dart_task.title = task.title.c_str();
+	// dart_task.description = task.description.c_str();
+	// dart_task.startDate = task.startDate.c_str();
+	// dart_task.endDate = task.endDate.c_str();
+
+	dart_task.status = task.status;
+	return dart_task;
 }
 
 DART_API int Dart_query_task_num(int task_num);
@@ -422,19 +464,24 @@ DART_API int Dart_query_task_num(int task_num){
 	return res;
 }
 
-DART_API Task Dart_get_task(int list_num, int task_id){
+DART_API Dart_Task Dart_get_task(int list_num, int task_id){
 	db->queryTaskById(list_num, task_id);
 	std::cout << "Query task finished." << std::endl;
 	output(query_result);
-	return query_result;
+	return covert_task_dart_task(query_result);
 }
 
 DART_API int Dart_create_task(int list_num, const char *title, const char *description, const char *startDate, const char *endDate, int status){
 	auto id = db->queryTaskIdFromList(list_num);
 	std::cout << "Create task id: " << id << std::endl;
-	db->insertTask(list_num, id, title, description, std::stoi(startDate), std::stoi(endDate), status);
+	db->insertTask(list_num, id, title, description, string_to_timestamp(startDate), string_to_timestamp(endDate), status);
 	std::cout << "Create task finished." << std::endl;
 	return id;
+}
+
+DART_API int Dart_update_task_stat(int list_id, int task_id, int stat) {
+	db->updateTaskStatus(list_id, task_id, stat);
+	return 0;
 }
 
 DART_API int Dart_test(){

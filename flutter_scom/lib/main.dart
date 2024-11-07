@@ -29,6 +29,10 @@ final addTaskC = _lib
     .lookupFunction<Int32 Function(Int32, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Int32), int Function(int, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, int)>
   ('Dart_create_task');
 
+final updateStatTaskC = _lib
+    .lookupFunction<Int32 Function(Int32, Int32, Int32), int Function(int, int, int)>
+  ('Dart_update_task_stat');
+
 final testDll = _lib
     .lookupFunction<Int32 Function(), int Function()>
   ('Dart_test');
@@ -70,11 +74,9 @@ class MyApp extends StatelessWidget {
 class MyAppState extends ChangeNotifier {
   var todoList = <TodoList>[];
   var initialized = false;
+  var addTaskPage = false;
 
   void init() {
-    // print("${test1()}");
-    // test2();
-    // print("${test3(2)}");
     if (!initialized) {
       initDatabaseC();
       // print("${queryTaskNum(0)}");
@@ -97,21 +99,30 @@ class MyAppState extends ChangeNotifier {
         }
         todoList.add(list);
       }
-      // print("${test1()}");
-      // test2();
-      // print("${test3(3)}");
-      // initDatabaseC();
       initialized = true;
       // notifyListeners();
     }
+  }
+
+  void intoAddTaskPage() {
+    addTaskPage = true;
+    notifyListeners();
   }
 
   void addTask(int listIndex, String title, String description, DateTime startTime, DateTime endTime, int status) {
     var newTask = Task(listIndex, 0, title, description, startTime, endTime, status);
     var newTaskId = addTaskC(listIndex, newTask.title.toNativeUtf8(), newTask.description.toNativeUtf8(), newTask.startTime.toIso8601String().toNativeUtf8(), newTask.endTime.toIso8601String().toNativeUtf8(), newTask.stat);
     print("$newTaskId");
+    print("listIndex: $listIndex, title: $title, description: $description, startTime: $startTime, endTime: $endTime, status: $status");
     newTask.id = newTaskId;
     todoList[listIndex].taskList.add(newTask);
+    notifyListeners();
+  }
+
+  void updateTaskStatus(int listIndex, int taskIndex, int status) {
+    print("update list$listIndex task$taskIndex stat:$status");
+    updateStatTaskC(listIndex, taskIndex, status);
+    todoList[listIndex].taskList[taskIndex].stat = status;
     notifyListeners();
   }
 
@@ -146,22 +157,9 @@ class _MyHomePageState extends State<MyHomePage> {
         throw UnimplementedError('no widget for $selectedIndex');
     }
 
-    // var calendarState = context.watch<CalendarState>();
-
     IconData calendarIcon = Icons.calendar_month;
-    // switch (calendarState.calendarIconIndex) {
-    //   case 0:
-    //     calendarIcon = Icons.calendar_view_day;
-    //     break;
-    //   case 1:
-    //     calendarIcon = Icons.calendar_view_week;
-    //     break;
-    //   case 2:
-    //     calendarIcon = Icons.calendar_view_month;
-    //     break;
-    //   default:
-    //     throw UnimplementedError('no icon for ${calendarState.calendarIconIndex}');
-    // }
+
+    var appState = context.watch<MyAppState>();
 
     return LayoutBuilder(builder: (context, constraints) {
       return Scaffold(
@@ -234,7 +232,7 @@ class Task {
 }
 
 Task changeTaskCtoTask(TaskC task) {
-  return Task(task.listId, 0, task.title.toDartString(), task.description.toDartString(), DateTime.parse(task.startTime.toDartString()), DateTime.parse(task.endTime.toDartString()), task.status);
+  return Task(task.listId, task.id, task.title.toDartString(), task.description.toDartString(), DateTime.parse(task.startTime.toDartString()), DateTime.parse(task.endTime.toDartString()), task.status);
 }
 
 // TaskC changeTaskCtoTask(Task task) {
@@ -307,12 +305,14 @@ class _TodoPageState extends State<TodoPage> {
 }
 
 class GeneratorTodoPage extends StatefulWidget {
-  const GeneratorTodoPage({
+  GeneratorTodoPage({
     super.key,
     required this.listIndex,
+    // required this.pop,
   });
 
   final int listIndex;
+  // final bool pop;
 
   @override
   State<GeneratorTodoPage> createState() => _GeneratorTodoPageState();
@@ -323,12 +323,21 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
     // widget.list.taskList.add(Task(1, 'eltiT', 'Todo2', DateTime.now(), DateTime.now(), 1));
     var appState = context.watch<MyAppState>();
 
+    // var addTaskPage = GeneratorAddTaskPage(child: Text('???'));
+
+    // if (widget.pop) {
+    //   return addTaskPage;
+    // }
+
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () {
           setState(() {
-            appState.addTask(0, 'eltiT', 'Todo2', DateTime.now(), DateTime.now(), 1);
+            Navigator.of(context).push(
+              DismissibleDialog<void>()
+            );
+            appState.addTask(widget.listIndex, 'eltiT', 'Todo2', DateTime.now(), DateTime.now(), 1);
           });
         },
       ),
@@ -358,8 +367,16 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
                     Expanded(
                       child: ListView(
                         children: appState.todoList[widget.listIndex].taskList.map((task) => Container(
-                          color: task.stat != 2 ? Theme.of(context).colorScheme.primaryContainer : Colors.deepOrange[300],
+                          // color: task.stat != 2 ? Theme.of(context).colorScheme.primaryContainer : Colors.deepOrange[300],
                           margin: EdgeInsets.all(10.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10.0),
+                            color: task.stat != 2 ? Theme.of(context).colorScheme.primaryContainer : Colors.deepOrange[300],
+                            border: Border.all(
+                              color: Colors.black,
+                              width: 1.0,
+                            ),
+                          ),
                           child: Row(
                             children: [
                               SizedBox(width: 10),
@@ -367,6 +384,8 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
                                 onPressed: (){
                                   setState((){
                                     task.stat = task.stat == 1 ? 0 : 1;
+                                    print('changed task${task.id}');
+                                    appState.updateTaskStatus(widget.listIndex, task.id, task.stat);
                                   });
                                 },
                                 icon: Icon(task.stat == 1 ? Icons.task_alt : Icons.circle),
@@ -390,6 +409,187 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
     );
   }
 }
+
+class DismissibleDialog<T> extends PopupRoute<T> {
+  @override
+  Color? get barrierColor => Colors.black.withAlpha(0x50);
+
+  // This allows the popup to be dismissed by tapping the scrim or by pressing
+  // the escape key on the keyboard.
+  @override
+  bool get barrierDismissible => true;
+
+  @override
+  String? get barrierLabel => 'Add Todo Task';
+
+  @override
+  Duration get transitionDuration => const Duration(milliseconds: 300);
+
+  @override
+  Widget buildPage(BuildContext context, Animation<double> animation,
+      Animation<double> secondaryAnimation) {
+    return Center(
+      // Provide DefaultTextStyle to ensure that the dialog's text style
+      // matches the rest of the text in the app.
+      // child: DefaultTextStyle(
+      //   style: Theme.of(context).textTheme.bodyMedium!,
+      //   // UnconstrainedBox is used to make the dialog size itself
+      //   // to fit to the size of the content.
+      //   child: UnconstrainedBox(
+      //     child: Container(
+      //       padding: const EdgeInsets.all(100.0),
+      //       decoration: BoxDecoration(
+      //         borderRadius: BorderRadius.circular(10),
+      //         color: Colors.white,
+      //       ),
+      //       child: Column(
+      //         children: <Widget>[
+      //           Text('Dismissible Dialog',
+      //               style: Theme.of(context).textTheme.headlineSmall),
+      //           const SizedBox(height: 20),
+      //           const Text('Tap in the scrim or press escape key to dismiss.'),
+      //         ],
+      //       ),
+      //     ),
+      //   ),
+      // ),
+      child: DefaultTextStyle(
+        style: Theme.of(context).textTheme.bodyMedium!,
+        child: Container(
+          margin: EdgeInsets.all(40),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: Colors.white,
+          ),
+          child: Expanded(
+            child: Column(
+              children: [
+                SizedBox(height: 10.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Add Todo Task',
+                    style: Theme.of(context).textTheme.headlineLarge),
+                  ],
+                ),
+                SizedBox(height: 10.0),
+                Expanded(
+                  // padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      SizedBox(width: 10.0),
+                      Expanded(
+                        // padding: const EdgeInsets.all(8.0),
+                        child: Scaffold(
+                          body: TextField(
+                            decoration: InputDecoration(
+                              labelText: 'Task Title',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10.0),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// class generatorAddTaskPage extends PopupRoute<void> {
+//   @override
+//   Color get barrierColor => Colors.black.withOpacity(0.5);
+//
+//   @override
+//   // TODO: implement barrierDismissible
+//   bool get barrierDismissible => throw UnimplementedError();
+//
+//   @override
+//   // TODO: implement barrierLabel
+//   String? get barrierLabel => throw UnimplementedError();
+//
+//   @override
+//   Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
+//     // TODO: implement buildPage
+//
+//     return Center(
+//       child: Container(
+//         height: 200,
+//         width: 200,
+//         color: Colors.white,
+//         child: Column(
+//           children: [
+//             Text('Add Task'),
+//             TextField(
+//               decoration: InputDecoration(
+//                 hintText: 'Task Name',
+//               ),
+//             ),
+//             TextField(
+//               decoration: InputDecoration(
+//                 hintText: 'Task Description',
+//               ),
+//             ),
+//             ElevatedButton(
+//               onPressed: (){
+//                 Navigator.of(context).pop();
+//               },
+//               child: Text('Add Task'),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//
+//     throw UnimplementedError();
+//   }
+//
+//   @override
+//   // TODO: implement transitionDuration
+//   Duration get transitionDuration => throw UnimplementedError();
+//
+//
+// }
+
+// class GeneratorAddTaskHolePage extends PopupMenuEntry<void> {
+//   @override
+//   Widget build(BuildContext context) {
+//     return Text('Add Task');
+//   }
+//
+//   @override
+//   State<StatefulWidget> createState() {
+//     // TODO: implement createState
+//     throw UnimplementedError();
+//   }
+//
+//   @override
+//   // TODO: implement height
+//   double get height => throw UnimplementedError();
+//
+//   @override
+//   bool represents(void value) {
+//     // TODO: implement represents
+//     throw UnimplementedError();
+//   }
+// }
+
+// class GeneratorAddTaskPage extends PopupMenuItem {
+//   GeneratorAddTaskPage({required super.child});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Text('Add Task');
+//   }
+// }
 
 class CalendarPage extends StatefulWidget {
   @override
