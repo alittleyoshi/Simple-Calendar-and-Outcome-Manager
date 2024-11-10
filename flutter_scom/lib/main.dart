@@ -4,6 +4,7 @@ import 'dart:ffi';
 import 'dart:io';
 import 'package:ffi/ffi.dart';
 import 'package:path/path.dart';
+import 'package:flutter_popup/flutter_popup.dart';
 
 DynamicLibrary _lib = Platform.isLinux ?
   DynamicLibrary.open('database.so') :
@@ -75,27 +76,22 @@ class MyAppState extends ChangeNotifier {
   var todoList = <TodoList>[];
   var initialized = false;
   var addTaskPage = false;
+  var listIndex = 0;
 
   void init() {
     if (!initialized) {
       initDatabaseC();
-      // print("${queryTaskNum(0)}");
       var listNum = queryTaskListNum();
       print("listNum: $listNum");
-      // print("${queryTaskNum(100)}");
       for (var i = 0; i < listNum; i++) {
         var list = TodoList();
         list.id = i;
         var taskNum = queryTaskNum(i);
-        // print("1");
         print("List$i, taskNum: $taskNum");
         for (var j = 0; j < taskNum; j++) {
           var taskC = getTaskC(i, j);
-          print(1);
           var task = changeTaskCtoTask(taskC);
-          print(2);
           list.taskList.add(task);
-          print(3);
         }
         todoList.add(list);
       }
@@ -123,6 +119,11 @@ class MyAppState extends ChangeNotifier {
     print("update list$listIndex task$taskIndex stat:$status");
     updateStatTaskC(listIndex, taskIndex, status);
     todoList[listIndex].taskList[taskIndex].stat = status;
+    notifyListeners();
+  }
+
+  void modifyTask(int listIndex, int taskIndex, Task task) {
+    todoList[listIndex].taskList[taskIndex] = task;
     notifyListeners();
   }
 
@@ -288,6 +289,7 @@ class _TodoPageState extends State<TodoPage> {
               onDestinationSelected: (value){
                 setState(() {
                   selectedIndex = value;
+                  appState.listIndex = value;
                 });
               },
             ),
@@ -335,9 +337,9 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
         onPressed: () {
           setState(() {
             Navigator.of(context).push(
-              DismissibleDialog<void>()
+              AddTaskPage<void>()
             );
-            appState.addTask(widget.listIndex, 'eltiT', 'Todo2', DateTime.now(), DateTime.now(), 1);
+            // appState.addTask(widget.listIndex, 'eltiT', 'Todo2', DateTime.now(), DateTime.now(), 1);
           });
         },
       ),
@@ -366,7 +368,7 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
                     SizedBox(width: 15),
                     Expanded(
                       child: ListView(
-                        children: appState.todoList[widget.listIndex].taskList.map((task) => Container(
+                        children: appState.todoList[widget.listIndex].taskList.map((task) => task.stat != 4 ? Container(
                           // color: task.stat != 2 ? Theme.of(context).colorScheme.primaryContainer : Colors.deepOrange[300],
                           margin: EdgeInsets.all(10.0),
                           decoration: BoxDecoration(
@@ -377,32 +379,49 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
                               width: 1.0,
                             ),
                           ),
-                          child: Row(
-                            children: [
-                              SizedBox(width: 10),
-                              ElevatedButton.icon(
-                                onPressed: (){
-                                  setState((){
-                                    task.stat = task.stat == 1 ? 0 : 1;
-                                    print('changed task${task.id}');
-                                    appState.updateTaskStatus(widget.listIndex, task.id, task.stat);
-                                  });
-                                },
-                                icon: Icon(task.stat == 1 ? Icons.task_alt : Icons.circle),
-                                label: SizedBox(),
-                              ),
-                              SizedBox(width: 10),
-                              Text('Task ${task.title}'),
-                            ],
+                          child: InkWell(
+                            onTap: (){
+                              modifyTaskState.task = task;
+                              Navigator.of(context).push(
+                                modifyTaskPage<void>()
+                              );
+                            },
+                            child: Row(
+                              children: [
+                                SizedBox(width: 10),
+                                ElevatedButton.icon(
+                                  onPressed: (){
+                                    setState((){
+                                      task.stat = task.stat == 1 ? 0 : 1;
+                                      print('changed task${task.id}');
+                                      appState.updateTaskStatus(widget.listIndex, task.id, task.stat);
+                                    });
+                                  },
+                                  icon: Icon(task.stat == 1 ? Icons.task_alt : Icons.circle),
+                                  label: SizedBox(),
+                                ),
+                                SizedBox(width: 10),
+                                Text('Task ${task.title}'),
+                                Expanded(child: SizedBox()),
+                                ElevatedButton(
+                                    onPressed: (){
+                                      task.stat = 4;
+                                      appState.modifyTask(modifyTaskState.task.listId, modifyTaskState.task.id, modifyTaskState.task);
+                                    },
+                                    child: Text("Delete"),
+                                ),
+                                SizedBox(width: 10.0),
+                              ],
+                            ),
                           ),
-                        )).toList(),
+                        ) : SizedBox()).toList(),
                       ),
                     ),
                     SizedBox(width: 15),
                   ],
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -410,7 +429,13 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
   }
 }
 
-class DismissibleDialog<T> extends PopupRoute<T> {
+class AddTaskState {
+  var startTime = DateTime.now(), endTime = DateTime.now();
+}
+
+AddTaskState addTaskState = AddTaskState();
+
+class AddTaskPage<T> extends PopupRoute<T> {
   @override
   Color? get barrierColor => Colors.black.withAlpha(0x50);
 
@@ -428,31 +453,15 @@ class DismissibleDialog<T> extends PopupRoute<T> {
   @override
   Widget buildPage(BuildContext context, Animation<double> animation,
       Animation<double> secondaryAnimation) {
+
+    var titleController = TextEditingController();
+    var descriptionController = TextEditingController();
+    var appState = context.watch<MyAppState>();
+
+    print("Changed");
+    print(addTaskState.startTime.toString());
+
     return Center(
-      // Provide DefaultTextStyle to ensure that the dialog's text style
-      // matches the rest of the text in the app.
-      // child: DefaultTextStyle(
-      //   style: Theme.of(context).textTheme.bodyMedium!,
-      //   // UnconstrainedBox is used to make the dialog size itself
-      //   // to fit to the size of the content.
-      //   child: UnconstrainedBox(
-      //     child: Container(
-      //       padding: const EdgeInsets.all(100.0),
-      //       decoration: BoxDecoration(
-      //         borderRadius: BorderRadius.circular(10),
-      //         color: Colors.white,
-      //       ),
-      //       child: Column(
-      //         children: <Widget>[
-      //           Text('Dismissible Dialog',
-      //               style: Theme.of(context).textTheme.headlineSmall),
-      //           const SizedBox(height: 20),
-      //           const Text('Tap in the scrim or press escape key to dismiss.'),
-      //         ],
-      //       ),
-      //     ),
-      //   ),
-      // ),
       child: DefaultTextStyle(
         style: Theme.of(context).textTheme.bodyMedium!,
         child: Container(
@@ -481,13 +490,32 @@ class DismissibleDialog<T> extends PopupRoute<T> {
                       Expanded(
                         // padding: const EdgeInsets.all(8.0),
                         child: Scaffold(
-                          body: TextField(
-                            decoration: InputDecoration(
-                              labelText: 'Task Title',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10.0),
+                          body: Column(
+                            children: [
+                              TextField(
+                                controller: titleController,
+                                decoration: InputDecoration(
+                                  labelText: 'Task Title',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                ),
                               ),
-                            ),
+                              SizedBox(height: 10.0),
+                              TextField(
+                                controller: descriptionController,
+                                minLines: 2,
+                                maxLines: 10,
+                                decoration: InputDecoration(
+                                  labelText: 'Task Description',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 10.0),
+                              AddTaskPageCalendar(),
+                            ],
                           ),
                         ),
                       ),
@@ -495,6 +523,232 @@ class DismissibleDialog<T> extends PopupRoute<T> {
                     ],
                   ),
                 ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(),
+                    ),
+                    ElevatedButton(
+                        onPressed: (){
+                          appState.addTask(appState.listIndex, titleController.text, descriptionController.text, addTaskState.startTime, addTaskState.endTime, 1);
+                        },
+                        child: Text("Add"),
+                    ),
+                    SizedBox(width: 20.0),
+                  ],
+                ),
+                SizedBox(height: 10.0,)
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class AddTaskPageCalendar extends StatefulWidget {
+  @override
+  State<AddTaskPageCalendar> createState() => _AddTaskPageCalendarState();
+}
+
+class _AddTaskPageCalendarState extends State<AddTaskPageCalendar> {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text("Start Time:"),
+        SizedBox(width: 10.0),
+        CustomPopup(
+          showArrow: false,
+          content: SizedBox(
+            width: 300,
+            child: CalendarDatePicker(
+              initialDate: addTaskState.startTime,
+              firstDate: DateTime.fromMicrosecondsSinceEpoch(0),
+              lastDate: DateTime.fromMicrosecondsSinceEpoch(10000000000000000),
+              onDateChanged: (v) {
+                setState(() {
+
+                });
+                addTaskState.startTime = v;
+                print(v);
+              },
+            ),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Theme.of(context).colorScheme.onInverseSurface,
+            ),
+            child: Icon(Icons.calendar_month),
+          ),
+        ),
+        SizedBox(width: 10.0),
+        Text("${addTaskState.startTime.year}-${addTaskState.startTime.month}-${addTaskState.startTime.day}"),
+        SizedBox(width: 100.0),
+        Text("End Time:"),
+        SizedBox(width: 10.0),
+        CustomPopup(
+          showArrow: false,
+          content: SizedBox(
+            width: 300,
+            child: CalendarDatePicker(
+              initialDate: addTaskState.endTime,
+              firstDate: DateTime.fromMicrosecondsSinceEpoch(0),
+              lastDate: DateTime.fromMicrosecondsSinceEpoch(10000000000000000),
+              onDateChanged: (v) {
+                setState(() {
+
+                });
+                addTaskState.endTime = v;
+                print(v);
+              },
+            ),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Theme.of(context).colorScheme.onInverseSurface,
+            ),
+            child: Icon(Icons.calendar_month),
+          ),
+        ),
+        SizedBox(width: 10.0),
+        Text("${addTaskState.endTime.year}-${addTaskState.endTime.month}-${addTaskState.endTime.day}"),
+      ],
+    );
+  }
+}
+
+class ModifyTaskState {
+  var task;
+}
+
+var modifyTaskState = ModifyTaskState();
+
+class modifyTaskPage<T> extends PopupRoute<T> {
+  @override
+  Color? get barrierColor => Colors.black.withAlpha(0x50);
+
+  // This allows the popup to be dismissed by tapping the scrim or by pressing
+  // the escape key on the keyboard.
+  @override
+  bool get barrierDismissible => true;
+
+  @override
+  String? get barrierLabel => 'Add Todo Task';
+
+  @override
+  Duration get transitionDuration => const Duration(milliseconds: 300);
+
+  @override
+  Widget buildPage(BuildContext context, Animation<double> animation,
+      Animation<double> secondaryAnimation) {
+
+    var titleController = TextEditingController();
+    var descriptionController = TextEditingController();
+    var appState = context.watch<MyAppState>();
+
+    titleController.text = modifyTaskState.task.title;
+    descriptionController.text = modifyTaskState.task.description;
+    modifyTaskState.task.startTime = modifyTaskState.task.startTime;
+    modifyTaskState.task.endTime = modifyTaskState.task.endTime;
+
+    print("Changed");
+    print(addTaskState.startTime.toString());
+
+    return Center(
+      child: DefaultTextStyle(
+        style: Theme.of(context).textTheme.bodyMedium!,
+        child: Container(
+          margin: EdgeInsets.all(40),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: Colors.white,
+          ),
+          child: Expanded(
+            child: Column(
+              children: [
+                SizedBox(height: 10.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Modify Todo Task',
+                    style: Theme.of(context).textTheme.headlineLarge),
+                  ],
+                ),
+                SizedBox(height: 10.0),
+                Expanded(
+                  // padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      SizedBox(width: 10.0),
+                      Expanded(
+                        // padding: const EdgeInsets.all(8.0),
+                        child: Scaffold(
+                          body: Column(
+                            children: [
+                              TextField(
+                                controller: titleController,
+                                decoration: InputDecoration(
+                                  labelText: 'Task Title',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 10.0),
+                              TextField(
+                                controller: descriptionController,
+                                minLines: 2,
+                                maxLines: 10,
+                                decoration: InputDecoration(
+                                  labelText: 'Task Description',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 10.0),
+                              AddTaskPageCalendar(),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10.0),
+                    ],
+                  ),
+                ),
+                Row(
+                  children: [
+                    SizedBox(width: 20.0),
+                    ElevatedButton(
+                        onPressed: (){
+                          modifyTaskState.task.stat = 4;
+                          appState.modifyTask(modifyTaskState.task.listId, modifyTaskState.task.id, modifyTaskState.task);
+                        },
+                        child: Text("Delete"),
+                    ),
+                    Expanded(
+                      child: SizedBox(),
+                    ),
+                    ElevatedButton(
+                        onPressed: (){
+                          modifyTaskState.task.title = titleController.text;
+                          modifyTaskState.task.description = descriptionController.text;
+                          modifyTaskState.task.startTime = addTaskState.startTime;
+                          modifyTaskState.task.endTime = addTaskState.endTime;
+                          appState.modifyTask(modifyTaskState.task.listId, modifyTaskState.task.id, modifyTaskState.task);
+                        },
+                        child: Text("Save"),
+                    ),
+                    SizedBox(width: 20.0),
+                  ],
+                ),
+                SizedBox(height: 10.0,)
               ],
             ),
           ),
