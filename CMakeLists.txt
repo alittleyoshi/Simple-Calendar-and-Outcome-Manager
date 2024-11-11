@@ -11,7 +11,10 @@ project(SCOM_database)
 
 set(CMAKE_CXX_STANDARD 20)
 
+#find_library(sqlite3Lib sqlite3 HINTS D:\\Kibi\\sqlite3)
+
 add_library(SCOM_database SHARED flutter_scom/lib/database.cpp)
-#link_directories(D:\\Kibi\\sqlite3)
-target_link_directories(SCOM_database PUBLIC D:\\Kibi\\sqlite3)
+
+target_link_directories(SCOM_database PUBLIC flutter_scom/lib)
+
 target_link_libraries(SCOM_database LINK_PUBLIC sqlite3)

@@ -486,76 +486,74 @@ class AddTaskPage<T> extends PopupRoute<T> {
             borderRadius: BorderRadius.circular(10),
             color: Colors.white,
           ),
-          child: Expanded(
-            child: Column(
-              children: [
-                SizedBox(height: 10.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+          child: Column(
+            children: [
+              SizedBox(height: 10.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Add Todo Task',
+                  style: Theme.of(context).textTheme.headlineLarge),
+                ],
+              ),
+              SizedBox(height: 10.0),
+              Expanded(
+                // padding: const EdgeInsets.all(8.0),
+                child: Row(
                   children: [
-                    Text('Add Todo Task',
-                    style: Theme.of(context).textTheme.headlineLarge),
-                  ],
-                ),
-                SizedBox(height: 10.0),
-                Expanded(
-                  // padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      SizedBox(width: 10.0),
-                      Expanded(
-                        // padding: const EdgeInsets.all(8.0),
-                        child: Scaffold(
-                          body: Column(
-                            children: [
-                              TextField(
-                                controller: titleController,
-                                decoration: InputDecoration(
-                                  labelText: 'Task Title',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
+                    SizedBox(width: 10.0),
+                    Expanded(
+                      // padding: const EdgeInsets.all(8.0),
+                      child: Scaffold(
+                        body: Column(
+                          children: [
+                            TextField(
+                              controller: titleController,
+                              decoration: InputDecoration(
+                                labelText: 'Task Title',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
                                 ),
                               ),
-                              SizedBox(height: 10.0),
-                              TextField(
-                                controller: descriptionController,
-                                minLines: 2,
-                                maxLines: 10,
-                                decoration: InputDecoration(
-                                  labelText: 'Task Description',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
+                            ),
+                            SizedBox(height: 10.0),
+                            TextField(
+                              controller: descriptionController,
+                              minLines: 2,
+                              maxLines: 10,
+                              decoration: InputDecoration(
+                                labelText: 'Task Description',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
                                 ),
                               ),
-                              SizedBox(height: 10.0),
-                              AddTaskPageCalendar(),
-                            ],
-                          ),
+                            ),
+                            SizedBox(height: 10.0),
+                            AddTaskPageCalendar(),
+                          ],
                         ),
                       ),
-                      SizedBox(width: 10.0),
-                    ],
-                  ),
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: SizedBox(),
                     ),
-                    ElevatedButton(
-                        onPressed: (){
-                          appState.addTask(appState.listIndex, titleController.text, descriptionController.text, addTaskState.startTime, addTaskState.endTime, 1);
-                        },
-                        child: Text("Add"),
-                    ),
-                    SizedBox(width: 20.0),
+                    SizedBox(width: 10.0),
                   ],
                 ),
-                SizedBox(height: 10.0,)
-              ],
-            ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(),
+                  ),
+                  ElevatedButton(
+                      onPressed: (){
+                        appState.addTask(appState.listIndex, titleController.text, descriptionController.text, addTaskState.startTime, addTaskState.endTime, 1);
+                      },
+                      child: Text("Add"),
+                  ),
+                  SizedBox(width: 20.0),
+                ],
+              ),
+              SizedBox(height: 10.0,)
+            ],
           ),
         ),
       ),
@@ -685,88 +683,86 @@ class modifyTaskPage<T> extends PopupRoute<T> {
             borderRadius: BorderRadius.circular(10),
             color: Colors.white,
           ),
-          child: Expanded(
-            child: Column(
-              children: [
-                SizedBox(height: 10.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+          child: Column(
+            children: [
+              SizedBox(height: 10.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Modify Todo Task',
+                  style: Theme.of(context).textTheme.headlineLarge),
+                ],
+              ),
+              SizedBox(height: 10.0),
+              Expanded(
+                // padding: const EdgeInsets.all(8.0),
+                child: Row(
                   children: [
-                    Text('Modify Todo Task',
-                    style: Theme.of(context).textTheme.headlineLarge),
-                  ],
-                ),
-                SizedBox(height: 10.0),
-                Expanded(
-                  // padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      SizedBox(width: 10.0),
-                      Expanded(
-                        // padding: const EdgeInsets.all(8.0),
-                        child: Scaffold(
-                          body: Column(
-                            children: [
-                              TextField(
-                                controller: titleController,
-                                decoration: InputDecoration(
-                                  labelText: 'Task Title',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
+                    SizedBox(width: 10.0),
+                    Expanded(
+                      // padding: const EdgeInsets.all(8.0),
+                      child: Scaffold(
+                        body: Column(
+                          children: [
+                            TextField(
+                              controller: titleController,
+                              decoration: InputDecoration(
+                                labelText: 'Task Title',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
                                 ),
                               ),
-                              SizedBox(height: 10.0),
-                              TextField(
-                                controller: descriptionController,
-                                minLines: 2,
-                                maxLines: 10,
-                                decoration: InputDecoration(
-                                  labelText: 'Task Description',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
+                            ),
+                            SizedBox(height: 10.0),
+                            TextField(
+                              controller: descriptionController,
+                              minLines: 2,
+                              maxLines: 10,
+                              decoration: InputDecoration(
+                                labelText: 'Task Description',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
                                 ),
                               ),
-                              SizedBox(height: 10.0),
-                              AddTaskPageCalendar(),
-                            ],
-                          ),
+                            ),
+                            SizedBox(height: 10.0),
+                            AddTaskPageCalendar(),
+                          ],
                         ),
                       ),
-                      SizedBox(width: 10.0),
-                    ],
-                  ),
-                ),
-                Row(
-                  children: [
-                    SizedBox(width: 20.0),
-                    ElevatedButton(
-                        onPressed: (){
-                          modifyTaskState.task.stat = 4;
-                          appState.modifyTask(modifyTaskState.task.listId, modifyTaskState.task.id, modifyTaskState.task);
-                        },
-                        child: Text("Delete"),
                     ),
-                    Expanded(
-                      child: SizedBox(),
-                    ),
-                    ElevatedButton(
-                        onPressed: (){
-                          modifyTaskState.task.title = titleController.text;
-                          modifyTaskState.task.description = descriptionController.text;
-                          modifyTaskState.task.startTime = addTaskState.startTime;
-                          modifyTaskState.task.endTime = addTaskState.endTime;
-                          appState.modifyTask(modifyTaskState.task.listId, modifyTaskState.task.id, modifyTaskState.task);
-                        },
-                        child: Text("Save"),
-                    ),
-                    SizedBox(width: 20.0),
+                    SizedBox(width: 10.0),
                   ],
                 ),
-                SizedBox(height: 10.0,)
-              ],
-            ),
+              ),
+              Row(
+                children: [
+                  SizedBox(width: 20.0),
+                  ElevatedButton(
+                      onPressed: (){
+                        modifyTaskState.task.stat = 4;
+                        appState.modifyTask(modifyTaskState.task.listId, modifyTaskState.task.id, modifyTaskState.task);
+                      },
+                      child: Text("Delete"),
+                  ),
+                  Expanded(
+                    child: SizedBox(),
+                  ),
+                  ElevatedButton(
+                      onPressed: (){
+                        modifyTaskState.task.title = titleController.text;
+                        modifyTaskState.task.description = descriptionController.text;
+                        modifyTaskState.task.startTime = addTaskState.startTime;
+                        modifyTaskState.task.endTime = addTaskState.endTime;
+                        appState.modifyTask(modifyTaskState.task.listId, modifyTaskState.task.id, modifyTaskState.task);
+                      },
+                      child: Text("Save"),
+                  ),
+                  SizedBox(width: 20.0),
+                ],
+              ),
+              SizedBox(height: 10.0,)
+            ],
           ),
         ),
       ),
