@@ -34,6 +34,10 @@ final updateStatTaskC = _lib
     .lookupFunction<Int32 Function(Int32, Int32, Int32), int Function(int, int, int)>
   ('Dart_update_task_stat');
 
+final updateTaskC = _lib
+    .lookupFunction<Int32 Function(Int32, Int32, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Int32), int Function(int, int, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, int)>
+  ('Dart_update_task');
+
 final testDll = _lib
     .lookupFunction<Int32 Function(), int Function()>
   ('Dart_test');
@@ -124,6 +128,16 @@ class MyAppState extends ChangeNotifier {
 
   void modifyTask(int listIndex, int taskIndex, Task task) {
     todoList[listIndex].taskList[taskIndex] = task;
+    updateTaskC(
+      listIndex,
+      taskIndex,
+      task.title.toNativeUtf8(),
+      task.description.toNativeUtf8(),
+      task.startTime.toString().toNativeUtf8(),
+      task.endTime.toString().toNativeUtf8(),
+      task.stat
+    );
+    print("${listIndex}, ${taskIndex}, ${task.title.toString()}, ${task.description.toString()}, ${task.startTime.toString()}, ${task.endTime.toString()}, ${task.stat}");
     notifyListeners();
   }
 
@@ -382,6 +396,7 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
                           child: InkWell(
                             onTap: (){
                               modifyTaskState.task = task;
+                              modifyTaskState.task.listId = widget.listIndex;
                               Navigator.of(context).push(
                                 modifyTaskPage<void>()
                               );
@@ -406,6 +421,7 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
                                 ElevatedButton(
                                     onPressed: (){
                                       task.stat = 4;
+                                      modifyTaskState.task = task;
                                       appState.modifyTask(modifyTaskState.task.listId, modifyTaskState.task.id, modifyTaskState.task);
                                     },
                                     child: Text("Delete"),

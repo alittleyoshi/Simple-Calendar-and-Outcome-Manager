@@ -479,6 +479,11 @@ DART_API int Dart_create_task(int list_num, const char *title, const char *descr
 	return id;
 }
 
+DART_API int Dart_update_task(int list_id, int task_id, const char *title, const char *description, const char *startDate, const char *endDate, int status) {
+	db->updateTask(list_id, task_id, title, description, string_to_timestamp(startDate), string_to_timestamp(endDate), status);
+	return 0;
+}
+
 DART_API int Dart_update_task_stat(int list_id, int task_id, int stat) {
 	db->updateTaskStatus(list_id, task_id, stat);
 	return 0;
