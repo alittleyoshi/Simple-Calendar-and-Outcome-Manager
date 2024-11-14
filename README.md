@@ -1,5 +1,7 @@
 # Simple Calendar and Outcome Manager
 
+[简体中文](README_zh-cn.md)
+
 Welcome to the Simple Calendar and Outcome Manager, a streamlined application built using Flutter for managing your schedule and tracking outcomes efficiently.
 
 ![Main Page Preview](https://github.com/user-attachments/assets/65886888-2402-4024-8968-378a733e0b11)
@@ -11,16 +13,19 @@ Welcome to the Simple Calendar and Outcome Manager, a streamlined application bu
 - [ ] **Notifications**: Set reminders for important events and deadlines.
 - [ ] **Cross-Platform**: Available on both iOS and Android.
 
-## Getting Started
+## Develop
 
 ### Prerequisites
 
 Before you begin, ensure you have met the following requirements:
 
 - Flutter SDK: [Installation Guide](https://flutter.dev/docs/get-started/install)
+- MinGW-64: [Download Link](https://gcc.gnu.org/)
+- CMAKE: [Download Link](https://cmake.org/download/)
+- SQLite3 Source Code: [Installation Guide](https://www.sqlite.org/download.html)
 - An IDE such as Visual Studio Code or Intellij IDEA
 
-### Installation
+### Compile
 
 1. Clone the repository:
    ```sh
@@ -34,7 +39,15 @@ Before you begin, ensure you have met the following requirements:
    ```sh
    flutter pub get
    ```
-4. Run the app:
+4. Compile Dependents:
+   
+   Put the SQLite source code in```flutter_scom/lib```
+   Compile [database.cpp](flutter_scom/lib/database.cpp)。
+   Copy database.dll to binary file directory of flutter app. 
+   ```sh
+   cp database.dll flutter_scom/build/windows/x64/runner/Debug
+   ```
+5. Run the app:
    ```sh
    flutter run
    ```
@@ -70,7 +83,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contact
 
-If you have any questions or feedback, feel free to reach out at [your-email@example.com].
+If you have any questions or feedback, feel free to reach out at [alittlezhi@gmail.com].
 
 ---
 
