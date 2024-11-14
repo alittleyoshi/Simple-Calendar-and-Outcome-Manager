@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'dart:ffi';
 import 'dart:io';
 import 'package:ffi/ffi.dart';
-import 'package:path/path.dart';
 import 'package:flutter_popup/flutter_popup.dart';
 
 DynamicLibrary _lib = Platform.isLinux ?

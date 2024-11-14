@@ -1,13 +1,14 @@
+﻿#include "database.h"
 #include <iostream>
 #include <chrono>
 #include <iomanip>
-#include <sqlite3.h>
+#include "sqlite3.h"
 #include <string.h>
 #include <string>
 
 #define DART_API extern "C" __attribute__((visibility("default"))) __attribute__((used))
 
-struct Task{
+/*struct Task{
 	int list_id;
 	int id;
 	std::string title;
@@ -15,9 +16,9 @@ struct Task{
 	std::string startDate;
 	std::string endDate;
 	int status;	// 0 - not started,  1 - completed,  2 - emergency
-};
+};*/
 
-struct Dart_Task{
+/*struct Dart_Task{
 	int list_id;
 	int id;
 	char* title;
@@ -25,7 +26,7 @@ struct Dart_Task{
 	char* startDate;
 	char* endDate;
 	int status;	// 0 - not started,  1 - completed,  2 - emergency
-};
+};*/
 
 Task query_result;	//每次查询后的结果存贮在这里
 
@@ -81,12 +82,12 @@ Dart_Task covert_task_dart_task(Task task){
 
 DART_API int Dart_query_task_num(int task_num);
 
-class DatabaseManager {
-private:
-	sqlite3* db;
-
-public:
-	DatabaseManager(const std::string& dbName) {
+// class DatabaseManager {
+// private:
+// 	sqlite3* db;
+//
+// public:
+	DatabaseManager::DatabaseManager(const std::string& dbName) {
 		int rc = sqlite3_open(dbName.c_str(),  &db);
 		if (rc) {
 			std::cout << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
@@ -95,11 +96,11 @@ public:
 		std::cout << "Database opened successfully" << std::endl;
 	}
 
-	~DatabaseManager() {
+	DatabaseManager::~DatabaseManager() {
 		sqlite3_close(db);
 	}
 
-	int createTable() {
+	int DatabaseManager::createTable() {
 		std::string pre = "CREATE TABLE IF NOT EXISTS TASKLIST"
 		+ std::to_string(tasklist_num) +
 		"("
@@ -141,7 +142,7 @@ public:
 	}
 
 
-	bool insertTask(int cur_tasklist,
+	bool DatabaseManager::insertTask(int cur_tasklist,
 				int task_id,  // 新加入的task的id
 				const std::string& title,
 				const std::string& description,
@@ -180,7 +181,7 @@ public:
 		return true;
 	}
 
-	bool _queryTasks(int cur_tasklist) {
+	bool DatabaseManager::_queryTasks(int cur_tasklist) {
 		static int temp;
 		std::string sql = "SELECT * FROM TASKLIST"+std::to_string(cur_tasklist)+";";
 		char* errMsg = 0;
@@ -206,7 +207,7 @@ public:
 		return true;
 	}
 
-	int queryTasksNum(int cur_tasklist) {
+	int DatabaseManager::queryTasksNum(int cur_tasklist) {
 		static int res;
 		std::string sql = "SELECT * FROM TASKLIST"+std::to_string(cur_tasklist)+";";
 		char* errMsg = 0;
@@ -229,7 +230,7 @@ public:
 		return res;
 	}
 
-	bool deleteTaskById(int cur_tasklist,  int id) {
+	bool DatabaseManager::deleteTaskById(int cur_tasklist,  int id) {
 		std::string sql = "DELETE FROM TASKLIST"
 		+std::to_string(cur_tasklist)+" WHERE ID = " + std::to_string(id) + ";";
 
@@ -246,7 +247,7 @@ public:
 		return true;
 	}
 
-	bool updateTask(int cur_tasklist,
+	bool DatabaseManager::updateTask(int cur_tasklist,
 	int id,
 	const std::string& title,
 	const std::string& description,
@@ -276,7 +277,7 @@ public:
 	}
 
 	// 更新单个字段的便捷方法
-	bool updateTaskTitle(int cur_tasklist, int id,  const std::string& title) {
+	bool DatabaseManager::updateTaskTitle(int cur_tasklist, int id,  const std::string& title) {
 		std::string sql = "UPDATE TASKLIST"
 		+std::to_string(cur_tasklist)+
 		" SET TITLE = '" + title + "' "
@@ -295,7 +296,7 @@ public:
 		return true;
 	}
 
-	bool updateTaskStatus(int cur_tasklist,  int id,  int stat) {
+	bool DatabaseManager::updateTaskStatus(int cur_tasklist,  int id,  int stat) {
 		std::string sql = "UPDATE TASKLIST"
 		+std::to_string(cur_tasklist)+
 		" SET STAT = " + std::to_string(stat) + " "
@@ -315,7 +316,7 @@ public:
 	}
 
 	//根据list和id查找
-	bool queryTaskById(int list_id,  int task_id) {
+	bool DatabaseManager::queryTaskById(int list_id,  int task_id) {
 		static int temp;
 		std::string sql = "SELECT * FROM TASKLIST"
 		+std::to_string(list_id)+
@@ -342,7 +343,7 @@ public:
 		return true;
 	}
 
-	bool initTaskListTable() {
+	bool DatabaseManager::initTaskListTable() {
 		const char* sql = "CREATE TABLE IF NOT EXISTS TASKLISTS ("
 						"TASK_NUM INTEGER NOT NULL, "	// 任务数量
 						"LIST_NAME TEXT NOT NULL PRIMARY KEY);";
@@ -358,7 +359,7 @@ public:
 		return true;
 	}
 
-	bool queryTaskLists() {
+	bool DatabaseManager::queryTaskLists() {
 		std::string sql = "SELECT * FROM TASKLISTS;";
 		char* errMsg = 0;
 
@@ -377,7 +378,7 @@ public:
 		return true;
 	}
 
-	int queryTaskListsNum() {
+	int DatabaseManager::queryTaskListsNum() {
 		std::string sql = "SELECT * FROM TASKLISTS;";
 		char* errMsg = 0;
 
@@ -401,7 +402,7 @@ public:
 		return res;
 	}
 
-	int queryTaskIdFromList(int list_id) {
+	int DatabaseManager::queryTaskIdFromList(int list_id) {
 		std::string sql = "SELECT TASK_NUM FROM TASKLISTS WHERE LIST_NAME = 'TASKLIST" + std::to_string(list_id) + "';";
 		char* errMsg = 0;
 		static int ret = 0;
@@ -424,7 +425,7 @@ public:
 		return ret;
 	}
 
-};
+// };
 
 //TODO given list_id and id return Task
 //DART_API Task dart_query(
