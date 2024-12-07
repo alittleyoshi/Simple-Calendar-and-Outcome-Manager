@@ -12,6 +12,8 @@ struct Task {
     std::string startDate;
     std::string endDate;
     int status;
+
+    void output() const;
 };
 
 struct Dart_Task {
@@ -29,23 +31,23 @@ public:
     DatabaseManager(const std::string& dbName);
     ~DatabaseManager();
 
-    int createTable();
+    int add_tasklist() const;
     bool insertTask(int cur_tasklist, int task_id, const std::string& title,
                    const std::string& description, long long startTime,
-                   long long endTime, int stat);
-    bool _queryTasks(int cur_tasklist);
-    int queryTasksNum(int cur_tasklist);
-    bool deleteTaskById(int cur_tasklist, int id);
+                   long long endTime, int stat) const;
+    bool _queryTasks(int cur_tasklist) const;
+    int queryTasksNum(int cur_tasklist) const;
+    bool deleteTaskById(int cur_tasklist, int id) const;
     bool updateTask(int cur_tasklist, int id, const std::string& title,
                    const std::string& description, long long startTime,
-                   long long endTime, int stat);
-    bool updateTaskTitle(int cur_tasklist, int id, const std::string& title);
-    bool updateTaskStatus(int cur_tasklist, int id, int stat);
-    bool queryTaskById(int list_id, int task_id);
-    bool initTaskListTable();
-    bool queryTaskLists();
-    int queryTaskListsNum();
-    int queryTaskIdFromList(int list_id);
+                   long long endTime, int stat) const;
+    bool updateTaskTitle(int cur_tasklist, int id, const std::string& title) const;
+    bool updateTaskStatus(int cur_tasklist, int id, int stat) const;
+    bool queryTaskById(int list_id, int task_id) const;
+    int initTaskListTable() const;
+    bool queryTaskLists() const;
+    int queryTaskListsNum() const;
+    int queryTaskIdFromList(int list_id) const;
 
 private:
     sqlite3* db;
@@ -53,9 +55,8 @@ private:
 
 // Utility functions
 std::string timestampToString(time_t timestamp);
-time_t string_to_timestamp(std::string timestamp);
-void output(Task result);
-Dart_Task covert_task_dart_task(Task task);
+time_t string_to_timestamp(const std::string& timestamp);
+Dart_Task covert_task_dart_task(const Task& task);
 
 // Dart API functions
 extern "C" {
