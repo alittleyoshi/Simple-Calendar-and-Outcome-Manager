@@ -38,6 +38,7 @@ public:
     int queryTasklistIdByNum(int list_num) const;
     int queryTasksNum(int cur_tasklist) const;
     int deleteTaskById(int cur_tasklist, int id) const;
+    int queryTaskByNum(int cur_tasklist, int task_num, Task* task) const;
     int updateTask(int cur_tasklist, int id, const std::string& title, const std::string& description,
                    long long startTime, long long endTime, int stat) const;
     bool updateTaskTitle(int cur_tasklist, int id, const std::string& title) const;
@@ -63,17 +64,14 @@ extern "C" {
     int Dart_query_tasklist_num();
     int Dart_query_tasklist_id(int num);
     int Dart_query_task_num(int task_num);
-    Dart_Task Dart_get_task(int list_num, int task_id);
+    Dart_Task Dart_get_task(int list_num, int task_num);
     int Dart_create_task(int list_num, const char* title, const char* description,
                         const char* startDate, const char* endDate, int status);
     int Dart_update_task(int list_id, int task_id, const char* title,
                         const char* description, const char* startDate,
                         const char* endDate, int status);
     int Dart_update_task_stat(int list_id, int task_id, int stat);
-    int Dart_test();
-    int Dart_test_f1();
-    void Dart_test_f2();
-    int Dart_test_f3(int val);
+    int Dart_delete_task(int list_id, int task_id);
 }
 
 #endif //DATABASE_H

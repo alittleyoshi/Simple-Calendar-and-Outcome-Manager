@@ -37,6 +37,7 @@ int test_queryTaskIdFromList() ;
 */
 
 int test_manager() {
+    remove("test.db");
     db = new DatabaseManager("test.db");
 
     db->initTaskListTable();
@@ -62,6 +63,14 @@ int test_manager() {
 
     res = db->queryTaskListsNum();
     assert(res == 2);
+
+    db->insertTask(2, 3, "test", "test", 1, 2, 0);
+    auto task = new Task;
+    db->queryTaskByNum(2, 1, task);
+    assert(task->id == 3);
+
+    auto exist_db = new DatabaseManager("tasks.db");
+    exist_db->initTaskListTable();
 
     return 0;
 }

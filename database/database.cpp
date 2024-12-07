@@ -150,7 +150,7 @@ int DatabaseManager::initTaskListTable() const {
 
     auto callback = [](void* data, int argc, char** argv, char** colName) {
         for (int i = 0; i < argc; i++) {
-            if (std::string(argv[0]).find("LIST_ID")) {
+            if (std::string(argv[0]).find("LIST_ID") != std::string::npos) {
                 *static_cast<bool*>(data) = true;
             }
         }
@@ -424,6 +424,33 @@ int DatabaseManager::queryTaskById(int list_id, int task_id, Task* task) const {
     return 0;
 }
 
+int DatabaseManager::queryTaskByNum(int list_id, int task_num, Task* task) const {
+    if (task == nullptr) {
+        std::cerr << "In queryTaskById, task is nullptr" << std::endl;
+        return -1;
+    }
+
+    std::string sql =
+        "SELECT * FROM TASKLIST" + std::to_string(list_id) + " LIMIT " + std::to_string(task_num) + ", 1;";
+    char* errMsg = nullptr;
+
+    auto callback = [](void* data, int argc, char** argv, char** azColName) {
+        *static_cast<Task*>(data) = {0, std::stoi(argv[0]), argv[1], argv[2], argv[3], argv[4], std::stoi(argv[5])};
+        return 0;
+    };
+
+    int rc = sqlite3_exec(db, sql.c_str(), callback, task, &errMsg);
+    task->list_id = list_id;
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "In queryTaskById," << std::endl;
+        std::cerr << "SQL error: " << errMsg << std::endl;
+        sqlite3_free(errMsg);
+        return -1;
+    }
+    return 0;
+}
+
 [[deprecated]]
 bool DatabaseManager::queryTaskLists() const {
     std::string sql = "SELECT * FROM TASKLISTS;";
@@ -527,21 +554,15 @@ DART_API int Dart_query_tasklist_id(int num) {
     return res;
 }
 
-DART_API [[deprecated]] int Dart_query_task_num(int task_num) {
-    int res = db->queryTaskIdFromList(task_num);
+DART_API int Dart_query_task_num(int task_num) {
+    int res = db->queryTasksNum(task_num);
     std::cerr << "Task num: " << res << std::endl;
     return res;
 }
 
-DART_API int Dart_query_task_id(int list_id) {
-    int res = db->queryTaskIdFromList(list_id);
-    std::cerr << "Task num: " << res << std::endl;
-    return res;
-}
-
-DART_API Dart_Task Dart_get_task(int list_num, int task_id) {
-    Task* res = new Task;
-    db->queryTaskById(list_num, task_id, res);
+DART_API Dart_Task Dart_get_task(int list_num, int task_num) {
+    auto res = new Task;
+    db->queryTaskByNum(list_num, task_num, res);
     std::cerr << "Query task finished." << std::endl;
     res->output();
     Dart_Task dart_task = covert_task_dart_task(*res);
@@ -569,5 +590,10 @@ DART_API int Dart_update_task(int list_id, int task_id, const char* title, const
 
 DART_API int Dart_update_task_stat(int list_id, int task_id, int stat) {
     db->updateTaskStatus(list_id, task_id, stat);
+    return 0;
+}
+
+int Dart_delete_task(int list_id, int task_id) {
+    db->deleteTaskById(list_id, task_id);
     return 0;
 }

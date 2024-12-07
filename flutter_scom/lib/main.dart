@@ -41,6 +41,10 @@ final updateTaskC = _lib
     .lookupFunction<Int32 Function(Int32, Int32, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Int32), int Function(int, int, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, int)>
   ('Dart_update_task');
 
+final deleteTaskC = _lib
+    .lookupFunction<Int32 Function(Int32, Int32), int Function(int, int)>
+  ('Dart_delete_task');
+
 final testDll = _lib
     .lookupFunction<Int32 Function(), int Function()>
   ('Dart_test');
@@ -126,6 +130,12 @@ class MyAppState extends ChangeNotifier {
     print("update list$listIndex task$taskIndex stat:$status");
     updateStatTaskC(listIndex, taskIndex, status);
     todoList[listIndex].taskList[taskIndex].stat = status;
+    notifyListeners();
+  }
+
+  void deleteTask(int listIndex, int taskId, Task task) {
+    deleteTaskC(todoList[listIndex].id, taskId);
+    todoList[listIndex].taskList.remove(task);
     notifyListeners();
   }
 
@@ -398,8 +408,9 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
                           ),
                           child: InkWell(
                             onTap: (){
+                              modifyTaskState.listIndex = widget.listIndex;
                               modifyTaskState.task = task;
-                              modifyTaskState.task.listId = widget.listIndex;
+                              // modifyTaskState.task.listId = widget.listIndex; what's?
                               Navigator.of(context).push(
                                 modifyTaskPage<void>()
                               );
@@ -423,9 +434,10 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
                                 Expanded(child: SizedBox()),
                                 ElevatedButton(
                                     onPressed: (){
-                                      task.stat = 4;
-                                      modifyTaskState.task = task;
-                                      appState.modifyTask(modifyTaskState.task.listId, modifyTaskState.task.id, modifyTaskState.task);
+                                      // task.stat = 4;
+                                      // modifyTaskState.task = task;
+                                      // appState.modifyTask(modifyTaskState.task.listId, modifyTaskState.task.id, modifyTaskState.task);
+                                      appState.deleteTask(widget.listIndex, task.id, task);
                                     },
                                     child: Text("Delete"),
                                 ),
@@ -641,6 +653,7 @@ class _AddTaskPageCalendarState extends State<AddTaskPageCalendar> {
 }
 
 class ModifyTaskState {
+  var listIndex;
   var task;
 }
 
@@ -743,8 +756,9 @@ class modifyTaskPage<T> extends PopupRoute<T> {
                   SizedBox(width: 20.0),
                   ElevatedButton(
                       onPressed: (){
-                        modifyTaskState.task.stat = 4;
-                        appState.modifyTask(modifyTaskState.task.listId, modifyTaskState.task.id, modifyTaskState.task);
+                        // modifyTaskState.task.stat = 4;
+                        // appState.modifyTask(modifyTaskState.task.listId, modifyTaskState.task.id, modifyTaskState.task);
+                        appState.deleteTask(modifyTaskState.listIndex, modifyTaskState.task.id, modifyTaskState.task);
                       },
                       child: Text("Delete"),
                   ),
