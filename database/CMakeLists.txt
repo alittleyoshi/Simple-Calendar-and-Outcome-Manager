@@ -16,6 +16,10 @@ set(HEADERS database.h)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+if (TEST)
+    add_compile_definitions(TEST)
+endif ()
+
 # Create shared library
 add_library(SCOM_database SHARED ${SOURCES} ${HEADERS})
 
@@ -26,3 +30,7 @@ add_library(sqlite3 STATIC sqlite3.c)
 target_link_libraries(SCOM_database PRIVATE sqlite3)
 
 #target_include_directories(SCOM_database PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+add_executable(SCOM_database_TEST test/test.cpp)
+target_link_libraries(SCOM_database_TEST PRIVATE SCOM_database)
+target_include_directories(SCOM_database_TEST PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

@@ -31,19 +31,18 @@ public:
     DatabaseManager(const std::string& dbName);
     ~DatabaseManager();
 
-    int add_tasklist() const;
-    bool insertTask(int cur_tasklist, int task_id, const std::string& title,
-                   const std::string& description, long long startTime,
-                   long long endTime, int stat) const;
-    bool _queryTasks(int cur_tasklist) const;
+    int add_tasklist(const std::string& list_name, int list_id) const;
+    int get_tasklist_cur_id() const;
+    int insertTask(int cur_tasklist, int task_id, const std::string& title, const std::string& description,
+                   long long startTime, long long endTime, int stat) const;
+    int queryTasklistIdByNum(int list_num) const;
     int queryTasksNum(int cur_tasklist) const;
-    bool deleteTaskById(int cur_tasklist, int id) const;
-    bool updateTask(int cur_tasklist, int id, const std::string& title,
-                   const std::string& description, long long startTime,
-                   long long endTime, int stat) const;
+    int deleteTaskById(int cur_tasklist, int id) const;
+    int updateTask(int cur_tasklist, int id, const std::string& title, const std::string& description,
+                   long long startTime, long long endTime, int stat) const;
     bool updateTaskTitle(int cur_tasklist, int id, const std::string& title) const;
     bool updateTaskStatus(int cur_tasklist, int id, int stat) const;
-    bool queryTaskById(int list_id, int task_id) const;
+    int queryTaskById(int list_id, int task_id, Task* task) const;
     int initTaskListTable() const;
     bool queryTaskLists() const;
     int queryTaskListsNum() const;
@@ -62,6 +61,7 @@ Dart_Task covert_task_dart_task(const Task& task);
 extern "C" {
     int Dart_init();
     int Dart_query_tasklist_num();
+    int Dart_query_tasklist_id(int num);
     int Dart_query_task_num(int task_num);
     Dart_Task Dart_get_task(int list_num, int task_id);
     int Dart_create_task(int list_num, const char* title, const char* description,

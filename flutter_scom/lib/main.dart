@@ -13,6 +13,10 @@ final initDatabaseC = _lib
     .lookupFunction<Int32 Function(), int Function()>
   ('Dart_init');
 
+final queryTaskListId = _lib
+    .lookupFunction<Int32 Function(Int32 list_num), int Function(int list_num)>
+  ('Dart_query_tasklist_id');
+
 final queryTaskListNum = _lib
     .lookupFunction<Int32 Function(), int Function()>
   ('Dart_query_tasklist_num');
@@ -88,7 +92,7 @@ class MyAppState extends ChangeNotifier {
       print("listNum: $listNum");
       for (var i = 0; i < listNum; i++) {
         var list = TodoList();
-        list.id = i;
+        list.id = queryTaskListId(i);
         var taskNum = queryTaskNum(i);
         print("List$i, taskNum: $taskNum");
         for (var j = 0; j < taskNum; j++) {
@@ -415,7 +419,7 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
                                   label: SizedBox(),
                                 ),
                                 SizedBox(width: 10),
-                                Text('Task ${task.title}'),
+                                Text('${task.title}'),
                                 Expanded(child: SizedBox()),
                                 ElevatedButton(
                                     onPressed: (){
