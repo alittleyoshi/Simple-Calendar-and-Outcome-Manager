@@ -65,6 +65,7 @@ extern "C" {
     int Dart_query_tasklist_id(int num);
     int Dart_query_task_num(int task_num);
     Dart_Task Dart_get_task(int list_num, int task_num);
+    int Dart_create_tasklist(const char* list_name);
     int Dart_create_task(int list_num, const char* title, const char* description,
                         const char* startDate, const char* endDate, int status);
     int Dart_update_task(int list_id, int task_id, const char* title,

@@ -150,7 +150,7 @@ int DatabaseManager::initTaskListTable() const {
 
     auto callback = [](void* data, int argc, char** argv, char** colName) {
         for (int i = 0; i < argc; i++) {
-            if (std::string(argv[0]).find("LIST_ID") != std::string::npos) {
+            if (argv[i] && std::string(argv[i]).find("TASK_ID") != std::string::npos) {
                 *static_cast<bool*>(data) = true;
             }
         }
@@ -568,6 +568,13 @@ DART_API Dart_Task Dart_get_task(int list_num, int task_num) {
     Dart_Task dart_task = covert_task_dart_task(*res);
     delete res;
     return dart_task;
+}
+
+DART_API int Dart_create_tasklist(const char* list_name) {
+    if (db->add_tasklist(list_name, ++tasklist_id) == -1) {
+        return -1;
+    }
+    return tasklist_id;
 }
 
 DART_API int Dart_create_task(int list_num, const char* title, const char* description, const char* startDate,
