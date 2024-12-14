@@ -11,7 +11,7 @@ Welcome to the Simple Calendar and Outcome Manager, a streamlined application bu
 - [ ] **Intuitive Calendar**: Easily view and manage your daily, weekly, and monthly schedules.
 - [ ] **Outcome Tracking**: Keep track of your goals and tasks with a simple and effective tracking system.
 - [ ] **Notifications**: Set reminders for important events and deadlines.
-- [ ] **Cross-Platform**: Available on both iOS and Android.
+- [ ] **Cross-Platform**: Available on both Windows and Linux.
 
 ## Develop
 
@@ -22,7 +22,6 @@ Before you begin, ensure you have met the following requirements:
 - Flutter SDK: [Installation Guide](https://flutter.dev/docs/get-started/install)
 - MinGW-64: [Download Link](https://gcc.gnu.org/)
 - CMAKE: [Download Link](https://cmake.org/download/)
-- SQLite3 Source Code: [Installation Guide](https://www.sqlite.org/download.html)
 - An IDE such as Visual Studio Code or Intellij IDEA
 
 ### Compile
@@ -34,6 +33,7 @@ Before you begin, ensure you have met the following requirements:
 2. Navigate to the project directory:
    ```sh
    cd Simple-Calendar-and-Outcome-Manager
+   cd flutter_scom
    ```
 3. Install dependencies:
    ```sh
@@ -41,11 +41,10 @@ Before you begin, ensure you have met the following requirements:
    ```
 4. Compile Dependents:
    
-   Put the SQLite source code in```flutter_scom/lib```
-   Compile [database.cpp](flutter_scom/lib/database.cpp)。
-   Copy database.dll to binary file directory of flutter app. 
+   Compile [database](database) with cmake.
+   Copy the output lib to binary file directory of flutter app. 
    ```sh
-   cp database.dll flutter_scom/build/windows/x64/runner/Debug
+   cp libSCOM_database.dll flutter_scom/build/windows/x64/runner/Debug/database.dll
    ```
 5. Run the app:
    ```sh

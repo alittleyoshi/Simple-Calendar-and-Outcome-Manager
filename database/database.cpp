@@ -127,7 +127,7 @@ int DatabaseManager::add_tasklist(const std::string& list_name, const int list_i
     return tasklist_id;
 }
 
-int DatabaseManager::initTaskListTable() const {
+int DatabaseManager::init_task_list_table() const {
 
     auto sql = "CREATE TABLE IF NOT EXISTS TASKLISTS ("
                "TASK_ID INTEGER NOT NULL, "
@@ -222,7 +222,7 @@ int DatabaseManager::initTaskListTable() const {
     return 0;
 }
 
-int DatabaseManager::queryTasklistIdByNum(int list_num) const {
+int DatabaseManager::query_tasklist_id_by_num(int list_num) const {
     auto sql = "SELECT ID FROM TASKLISTS LIMIT " + std::to_string(list_num) + ", 1;";
     int res = 0;
     char* errMsg = nullptr;
@@ -244,7 +244,7 @@ int DatabaseManager::queryTasklistIdByNum(int list_num) const {
     return res;
 }
 
-int DatabaseManager::insertTask(int cur_tasklist, // tasklist id
+int DatabaseManager::insert_task(int cur_tasklist, // tasklist id
                                 int task_id, const std::string& title, const std::string& description,
                                 long long startTime, long long endTime, int stat) const {
     std::string sql = "INSERT INTO TASKLIST" + std::to_string(cur_tasklist) +
@@ -280,7 +280,7 @@ int DatabaseManager::insertTask(int cur_tasklist, // tasklist id
     return 0;
 }
 
-int DatabaseManager::queryTasksNum(int cur_tasklist) const {
+int DatabaseManager::query_tasks_num(int cur_tasklist) const {
     static int res;
 
     std::string sql = "SELECT count(*) FROM TASKLIST" + std::to_string(cur_tasklist) + ";";
@@ -303,7 +303,7 @@ int DatabaseManager::queryTasksNum(int cur_tasklist) const {
     return res;
 }
 
-int DatabaseManager::deleteTaskById(int cur_tasklist, int id) const {
+int DatabaseManager::delete_task_by_id(int cur_tasklist, int id) const {
     std::string sql = "DELETE FROM TASKLIST" + std::to_string(cur_tasklist) + " WHERE ID = " + std::to_string(id) + ";";
 
     char* errMsg = nullptr;
@@ -320,7 +320,37 @@ int DatabaseManager::deleteTaskById(int cur_tasklist, int id) const {
     return 0;
 }
 
-int DatabaseManager::updateTask(int cur_tasklist, int id, const std::string& title, const std::string& description,
+int DatabaseManager::delete_tasklist_by_id(int tasklist_id) const {
+    std::string sql = "DELETE FROM TASKLISTS WHERE ID = " + std::to_string(tasklist_id) + ";";
+
+    char* errMsg = nullptr;
+    int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &errMsg);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "In deleteTasklistById, when delete from TASKLISTS" << std::endl;
+        std::cerr << "SQL error: " << errMsg << std::endl;
+        sqlite3_free(errMsg);
+        return -1;
+    }
+
+    sql = "DROP TABLE TASKLIST" + std::to_string(tasklist_id) + ";";
+
+    rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &errMsg);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "In deleteTasklistById, when drop table" << std::endl;
+        std::cerr << "SQL error: " << errMsg << std::endl;
+        sqlite3_free(errMsg);
+        return -1;
+    }
+
+    tasklist_num--;
+    std::cerr << "Tasklist deleted from TASKLISTS successfully" << std::endl;
+
+    return 0;
+}
+
+int DatabaseManager::update_task(int cur_tasklist, int id, const std::string& title, const std::string& description,
                                 long long startTime, long long endTime, int stat) const {
     std::string sql = "UPDATE TASKLIST" + std::to_string(cur_tasklist) +
         " SET "
@@ -397,7 +427,7 @@ bool DatabaseManager::updateTaskStatus(int cur_tasklist, int id, int stat) const
 }
 
 // query by given list_id and task_id
-int DatabaseManager::queryTaskById(int list_id, int task_id, Task* task) const {
+int DatabaseManager::query_task_by_id(int list_id, int task_id, Task* task) const {
     if (task == nullptr) {
         std::cerr << "In queryTaskById, task is nullptr" << std::endl;
         return -1;
@@ -424,7 +454,7 @@ int DatabaseManager::queryTaskById(int list_id, int task_id, Task* task) const {
     return 0;
 }
 
-int DatabaseManager::queryTaskByNum(int list_id, int task_num, Task* task) const {
+int DatabaseManager::query_task_by_num(int list_id, int task_num, Task* task) const {
     if (task == nullptr) {
         std::cerr << "In queryTaskById, task is nullptr" << std::endl;
         return -1;
@@ -471,7 +501,7 @@ bool DatabaseManager::queryTaskLists() const {
     return true;
 }
 
-int DatabaseManager::queryTaskListsNum() const {
+int DatabaseManager::query_task_lists_num() const {
 
     std::string sql = "SELECT count(*) FROM TASKLISTS;";
     char* errMsg = nullptr;
@@ -496,7 +526,7 @@ int DatabaseManager::queryTaskListsNum() const {
 }
 
 // query current task id ?
-int DatabaseManager::queryTaskIdFromList(int list_id) const {
+int DatabaseManager::query_task_id_from_list(int list_id) const {
 
     std::string sql = "SELECT TASK_ID FROM TASKLISTS WHERE LIST_NAME = 'TASKLIST" + std::to_string(list_id) + "';";
     char* errMsg = nullptr;
@@ -520,16 +550,16 @@ int DatabaseManager::queryTaskIdFromList(int list_id) const {
 // TODO add init check, check if init is called before any operation
 
 DatabaseManager* db;
-DART_API int Dart_init() {
+int Dart_init() {
     db = new DatabaseManager("tasks.db");
 
-    if (db->initTaskListTable() == -1) {
+    if (db->init_task_list_table() == -1) {
         std::cerr << "Init TaskListTable failed." << std::endl;
         return -1;
     }
     std::cerr << "Create TaskListTable finished." << std::endl;
 
-    tasklist_num = db->queryTaskListsNum();
+    tasklist_num = db->query_task_lists_num();
     std::cerr << "Init tasklist_num: " << tasklist_num << std::endl;
 
     tasklist_id = db->get_tasklist_cur_id();
@@ -546,23 +576,23 @@ DART_API int Dart_init() {
     return 0;
 }
 
-DART_API int Dart_query_tasklist_num() { return tasklist_num; }
+int Dart_query_tasklist_num() { return tasklist_num; }
 
-DART_API int Dart_query_tasklist_id(int num) {
-    int res = db->queryTasklistIdByNum(num);
+int Dart_query_tasklist_id(int num) {
+    int res = db->query_tasklist_id_by_num(num);
     std::cerr << "Tasklist id: " << res << std::endl;
     return res;
 }
 
-DART_API int Dart_query_task_num(int task_num) {
-    int res = db->queryTasksNum(task_num);
+int Dart_query_task_num(int task_num) {
+    int res = db->query_tasks_num(task_num);
     std::cerr << "Task num: " << res << std::endl;
     return res;
 }
 
-DART_API Dart_Task Dart_get_task(int list_num, int task_num) {
+Dart_Task Dart_get_task(int list_num, int task_num) {
     auto res = new Task;
-    db->queryTaskByNum(list_num, task_num, res);
+    db->query_task_by_num(list_num, task_num, res);
     std::cerr << "Query task finished." << std::endl;
     res->output();
     Dart_Task dart_task = covert_task_dart_task(*res);
@@ -570,37 +600,42 @@ DART_API Dart_Task Dart_get_task(int list_num, int task_num) {
     return dart_task;
 }
 
-DART_API int Dart_create_tasklist(const char* list_name) {
+int Dart_create_tasklist(const char* list_name) {
     if (db->add_tasklist(list_name, ++tasklist_id) == -1) {
         return -1;
     }
     return tasklist_id;
 }
 
-DART_API int Dart_create_task(int list_num, const char* title, const char* description, const char* startDate,
+int Dart_create_task(int list_num, const char* title, const char* description, const char* startDate,
                               const char* endDate, int status) {
-    auto id = db->queryTaskIdFromList(list_num);
+    auto id = db->query_task_id_from_list(list_num);
     std::cerr << "Create task id: " << id << std::endl;
-    if (db->insertTask(list_num, id, title, description, string_to_timestamp(startDate), string_to_timestamp(endDate), status) == -1) {
+    if (db->insert_task(list_num, id, title, description, string_to_timestamp(startDate), string_to_timestamp(endDate), status) == -1) {
         return -1;
     }
     std::cerr << "Create task finished." << std::endl;
     return id;
 }
 
-DART_API int Dart_update_task(int list_id, int task_id, const char* title, const char* description,
+int Dart_update_task(int list_id, int task_id, const char* title, const char* description,
                               const char* startDate, const char* endDate, int status) {
-    db->updateTask(list_id, task_id, title, description, string_to_timestamp(startDate), string_to_timestamp(endDate),
+    db->update_task(list_id, task_id, title, description, string_to_timestamp(startDate), string_to_timestamp(endDate),
                    status);
     return 0;
 }
 
-DART_API int Dart_update_task_stat(int list_id, int task_id, int stat) {
+int Dart_update_task_stat(int list_id, int task_id, int stat) {
     db->updateTaskStatus(list_id, task_id, stat);
     return 0;
 }
 
 int Dart_delete_task(int list_id, int task_id) {
-    db->deleteTaskById(list_id, task_id);
+    db->delete_task_by_id(list_id, task_id);
+    return 0;
+}
+
+int Dart_delete_tasklist(int list_id) {
+    db->delete_tasklist_by_id(list_id);
     return 0;
 }

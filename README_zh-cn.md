@@ -2,14 +2,14 @@
 
 欢迎使用SCOM，这是一款使用 Flutter 构建的MT3应用程序，用于高效管理您的日程并跟踪目标。
 
-![](https://github.com/user-attachments/assets/65886888-2402-4024-8968-378a733e0b11)
+![Main Page Preview](https://github.com/user-attachments/assets/65886888-2402-4024-8968-378a733e0b11)
 
 ## 特性
 
 - [ ] **直观的日历**：轻松查看和管理您的每日、每周和每月日程。
-- [ ] **目标跟踪**：使用简单有效的跟踪系统记录您的目标和任务。
+- [ ] **目标跟踪**：使用简单有效地跟踪系统记录您的目标和任务。
 - [ ] **通知**：为重要事件和截止日期设置提醒。
-- [ ] **跨平台**：可在 iOS 和 Android 设备上使用。
+- [ ] **跨平台**：可在 Windows 和 Linux 设备上使用。
 
 ## 开发指南
 
@@ -20,7 +20,6 @@
 - Flutter SDK：[安装指南](https://flutter.dev/docs/get-started/install)
 - MinGW-64: [下载链接](https://gcc.gnu.org/)
 - CMAKE: [下载链接](https://cmake.org/download/)
-- 下载SQLite3源码: [安装指南](https://www.sqlite.org/download.html)
 - 一款 IDE，如 Visual Studio Code 或 Intellij Idea
 
 ### 编译步骤
@@ -32,19 +31,19 @@
 2. 进入项目目录：
    ```sh
    cd Simple-Calendar-and-Outcome-Manager
+   cd flutter_scom
    ```
 3. 安装依赖：
    ```sh
    flutter pub get
    ```
 4. 编译依赖:
-   将SQLite3源码解压至```flutter_scom/lib```
-   自行使用CMAKE编译[database.cpp](flutter_scom/lib/database.cpp)。
-   然后复制至编译flutter得到的二进制文件目录下。
+   使用CMAKE编译[database](database)。
+   然后复制至编译flutter_scom得到的二进制文件目录下。
    ```sh
-   cp database.dll flutter_scom/build/windows/x64/runner/Debug
+   cp libSCOM_database.dll flutter_scom/build/windows/x64/runner/Debug/database.dll
    ```
-6. 运行应用：
+5. 运行应用：
    ```sh
    flutter run
    ```
@@ -76,7 +75,7 @@
 
 ## 许可证
 
-此项目根据 MIT 许可证授权 - 有关详细信息，请参阅 [LICENSE](LICENSE) 文件。
+此项目根据 GPL3 许可证授权 - 有关详细信息，请参阅 [LICENSE](LICENSE) 文件。
 
 ## 联系方式
 

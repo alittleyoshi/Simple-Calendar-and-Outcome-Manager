@@ -40,37 +40,41 @@ int test_manager() {
     remove("test.db");
     db = new DatabaseManager("test.db");
 
-    db->initTaskListTable();
+    db->init_task_list_table();
     db->add_tasklist("Todo List", 1);
     db->add_tasklist("Todo List", 2);
 
     int res;
 
-    res = db->queryTasksNum(1);
+    res = db->query_tasks_num(1);
     assert(res == 0);
 
-    db->insertTask(2, 1, "test", "test", 1, 2, 0);
-    res = db->queryTasksNum(2);
+    db->insert_task(2, 1, "test", "test", 1, 2, 0);
+    res = db->query_tasks_num(2);
     assert(res == 1);
 
-    db->insertTask(2, 2, "test", "test", 1, 2, 0);
-    res = db->queryTasksNum(2);
+    db->insert_task(2, 2, "test", "test", 1, 2, 0);
+    res = db->query_tasks_num(2);
     assert(res == 2);
 
-    db->deleteTaskById(2, 1);
-    res = db->queryTasksNum(2);
+    db->delete_task_by_id(2, 1);
+    res = db->query_tasks_num(2);
     assert(res == 1);
 
-    res = db->queryTaskListsNum();
+    res = db->query_task_lists_num();
     assert(res == 2);
 
-    db->insertTask(2, 3, "test", "test", 1, 2, 0);
+    db->insert_task(2, 3, "test", "test", 1, 2, 0);
     auto task = new Task;
-    db->queryTaskByNum(2, 1, task);
+    db->query_task_by_num(2, 1, task);
     assert(task->id == 3);
 
-    auto exist_db = new DatabaseManager("tasks.db");
-    exist_db->initTaskListTable();
+    db->delete_tasklist_by_id(1);
+    res = db->query_task_lists_num();
+    assert(res == 1);
+
+    // auto exist_db = new DatabaseManager("tasks.db");
+    // exist_db->init_task_list_table();
 
     return 0;
 }

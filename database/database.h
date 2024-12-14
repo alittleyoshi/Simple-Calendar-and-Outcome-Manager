@@ -28,26 +28,27 @@ struct Dart_Task {
 
 class DatabaseManager {
 public:
-    DatabaseManager(const std::string& dbName);
+    explicit DatabaseManager(const std::string& dbName);
     ~DatabaseManager();
 
     int add_tasklist(const std::string& list_name, int list_id) const;
     int get_tasklist_cur_id() const;
-    int insertTask(int cur_tasklist, int task_id, const std::string& title, const std::string& description,
+    int insert_task(int cur_tasklist, int task_id, const std::string& title, const std::string& description,
                    long long startTime, long long endTime, int stat) const;
-    int queryTasklistIdByNum(int list_num) const;
-    int queryTasksNum(int cur_tasklist) const;
-    int deleteTaskById(int cur_tasklist, int id) const;
-    int queryTaskByNum(int cur_tasklist, int task_num, Task* task) const;
-    int updateTask(int cur_tasklist, int id, const std::string& title, const std::string& description,
+    int query_tasklist_id_by_num(int list_num) const;
+    int query_tasks_num(int cur_tasklist) const;
+    int delete_task_by_id(int cur_tasklist, int id) const;
+    int delete_tasklist_by_id(int tasklist_id) const;
+    int query_task_by_num(int cur_tasklist, int task_num, Task* task) const;
+    int update_task(int cur_tasklist, int id, const std::string& title, const std::string& description,
                    long long startTime, long long endTime, int stat) const;
-    bool updateTaskTitle(int cur_tasklist, int id, const std::string& title) const;
-    bool updateTaskStatus(int cur_tasklist, int id, int stat) const;
-    int queryTaskById(int list_id, int task_id, Task* task) const;
-    int initTaskListTable() const;
-    bool queryTaskLists() const;
-    int queryTaskListsNum() const;
-    int queryTaskIdFromList(int list_id) const;
+    [[deprecated]] bool updateTaskTitle(int cur_tasklist, int id, const std::string& title) const;
+    [[deprecated]] bool updateTaskStatus(int cur_tasklist, int id, int stat) const;
+    int query_task_by_id(int list_id, int task_id, Task* task) const;
+    int init_task_list_table() const;
+    [[deprecated]] bool queryTaskLists() const;
+    int query_task_lists_num() const;
+    int query_task_id_from_list(int list_id) const;
 
 private:
     sqlite3* db;
@@ -73,6 +74,7 @@ extern "C" {
                         const char* endDate, int status);
     int Dart_update_task_stat(int list_id, int task_id, int stat);
     int Dart_delete_task(int list_id, int task_id);
+    int Dart_delete_tasklist(int list_id);
 }
 
 #endif //DATABASE_H

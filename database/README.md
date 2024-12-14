@@ -10,4 +10,4 @@ could be modified with id
 
 #### TABLE(TASKLISTS)
 
-The table to store the tasklist(num of task, name)
+The table to store the tasklist(TASK_ID, LIST_NAME, ID)

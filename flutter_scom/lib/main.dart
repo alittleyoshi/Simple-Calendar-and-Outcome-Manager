@@ -49,6 +49,10 @@ final deleteTaskC = _lib
     .lookupFunction<Int32 Function(Int32, Int32), int Function(int, int)>
   ('Dart_delete_task');
 
+final deleteTaskListC = _lib
+    .lookupFunction<Int32 Function(Int32), int Function(int)>
+  ('Dart_delete_tasklist');
+
 final testLib = _lib
     .lookupFunction<Int32 Function(), int Function()>
   ('Dart_test');
@@ -91,7 +95,8 @@ class MyAppState extends ChangeNotifier {
   var todoList = <TodoList>[];
   var initialized = false;
   var addTaskPage = false;
-  var listIndex = 0;
+  var listIndex = 0; // use for what?
+  var afterDelete = false;
 
   void init() {
     if (!initialized) {
@@ -174,6 +179,13 @@ class MyAppState extends ChangeNotifier {
       task.stat
     );
     print("${listIndex}, ${taskId}, ${task.title.toString()}, ${task.description.toString()}, ${task.startTime.toString()}, ${task.endTime.toString()}, ${task.stat}");
+    notifyListeners();
+  }
+
+  void deleteTaskList(int listIndex) {
+    deleteTaskListC(todoList[listIndex].id);
+    todoList.removeAt(listIndex);
+    afterDelete = true;
     notifyListeners();
   }
 
@@ -286,10 +298,6 @@ Task changeTaskCtoTask(TaskC task) {
   return Task(task.listId, task.id, task.title.toDartString(), task.description.toDartString(), DateTime.parse(task.startTime.toDartString()), DateTime.parse(task.endTime.toDartString()), task.status);
 }
 
-// TaskC changeTaskCtoTask(Task task) {
-//   return TaskC(task.title.toNativeUtf8(), task.description.toNativeUtf8(), task.startTime.toIso8601String().toNativeUtf8(), task.endTime.toIso8601String().toNativeUtf8(), task.stat);
-// }
-
 int getTodoListNum() {
   return 0;
 }
@@ -310,12 +318,16 @@ class MyNavigationRail extends StatefulWidget {
     super.key,
     this.destinations = const [],
     required this.onDestinationSelected,
+    required this.selectedIndex,
   });
   final List<Widget> destinations;
   final ValueChanged<int> onDestinationSelected;
+  final int selectedIndex;
 
   @override
   State<MyNavigationRail> createState() => _MyNavigationRailState();
+
+
 }
 
 class MyDestination {
@@ -328,10 +340,12 @@ class MyDestination {
 }
 
 class _MyNavigationRailState extends State<MyNavigationRail> {
+
   var selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
+    selectedIndex = widget.selectedIndex;
     List<MyDestination> list = [];
     for (var i = 0; i < widget.destinations.length; i++) {
       list.add(MyDestination(widget: widget.destinations[i], index: i));
@@ -378,6 +392,12 @@ class _MyNavigationRailState extends State<MyNavigationRail> {
       ),
     );
   }
+
+  void changeSelectedIndex(int index) {
+    setState(() {
+      selectedIndex = index;
+    });
+  }
 }
 
 class _TodoPageState extends State<TodoPage> {
@@ -389,8 +409,6 @@ class _TodoPageState extends State<TodoPage> {
     appState.init();
 
     Widget page;
-
-    // print("${appState.todoList}");
 
     var destination = appState.todoList.map((list) => Row(
       children: [
@@ -408,6 +426,25 @@ class _TodoPageState extends State<TodoPage> {
       ],
     ));
 
+    if (appState.afterDelete) {
+      setState(() {
+        appState.afterDelete = false;
+        appState.listIndex = 0;
+        selectedIndex = 0;
+      });
+    }
+
+    var myNavigationRail = MyNavigationRail(
+      destinations: destination,
+      onDestinationSelected: (index){
+        setState(() {
+          selectedIndex = index;
+          appState.listIndex = index;
+        });
+      },
+      selectedIndex: selectedIndex,
+    );
+
     if(selectedIndex == appState.todoList.length) {
       setState(() {
         appState.addList("Todo List");
@@ -419,21 +456,11 @@ class _TodoPageState extends State<TodoPage> {
 
     print("${appState.todoList.length}");
 
-    // var destination = todoList[selectedIndex].taskList.map((task) => )
-
     return Scaffold(
       body: Row(
         children: [
           Expanded(
-            child: MyNavigationRail(
-              destinations: destination,
-              onDestinationSelected: (index){
-                setState(() {
-                  selectedIndex = index;
-                  appState.listIndex = index;
-                });
-              },
-            ),
+            child: myNavigationRail,
           ),
           Expanded(
             flex: 3,
@@ -497,6 +524,16 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
                   Icon(Icons.star),
                   SizedBox(width: 10),
                   Text("Todo List ${widget.listIndex + 1}"),
+                  Expanded(child: SizedBox()),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        appState.deleteTaskList(widget.listIndex);
+                      });
+                    },
+                    label: Icon(Icons.delete),
+                  ),
+                  SizedBox(width: 10),
                 ],
               ),
             ),
