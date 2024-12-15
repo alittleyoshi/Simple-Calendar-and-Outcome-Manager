@@ -11,8 +11,22 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: pre-build
-      run: sudo apt-get update -y && sudo apt-get upgrade -y && sudo apt-get install -y curl git unzip xz-utils zip libglu1-mesa && sudo apt-get install -y clang cmake git ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev;
+    - name: Cache
+      uses: actions/cache@v4.2.0
+      env:
+        cache-name: cache-flutter
+      with:
+        path: ./flutter_scom/build/
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('.flutter_scom/lib/main.dart') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+
+    # - name: pre-build
+      # run: sudo apt-get update -y && sudo apt-get upgrade -y && sudo apt-get install -y curl git unzip xz-utils zip libglu1-mesa && sudo apt-get install -y clang cmake git ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev;
+    - uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: curl git unzip xz-utils zip libglu1-mesa clang cmake git ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
+        version: 1.0
     - name: flutter-download
       run: curl -O https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.27.0-stable.tar.xz
     - name: flutter-install
@@ -22,7 +36,7 @@ jobs:
     - name: cmake-install
       run: tar -xf ./cmake-3.31.2-linux-x86_64.tar.gz -C .
     - name: build-flutter-scom
-      run: cd flutter_scom && ../flutter/bin/flutter pub get && ../flutter/bin/flutter build linux
+      run: cd flutter_scom && ../flutter/bin/flutter config --no-cli-animations && ../flutter/bin/flutter pub get && ../flutter/bin/flutter build linux
     - name: build-database
       run: cd database && mkdir cmake-build-debug && ../cmake-3.31.2-linux-x86_64/bin/cmake -S . -B ./cmake-build-debug && ../cmake-3.31.2-linux-x86_64/bin/cmake --build ./cmake-build-debug --target SCOM_database
     - name: bundle
@@ -41,6 +55,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Cache
+      uses: actions/cache@v4.2.0
+      env:
+        cache-name: cache-flutter
+      with:
+        path: ./flutter_scom/build/
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('.flutter_scom/lib/main.dart') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+
     - name: flutter-download
       run: curl -O https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/flutter_windows_3.27.0-stable.zip
     - name: flutter-install
@@ -50,7 +74,7 @@ jobs:
     - name: cmake-install
       run: Expand-Archive –Path .\cmake-3.31.2-windows-x86_64.zip -Destination .
     - name: build-flutter-scom
-      run: cd flutter_scom && ../flutter/bin/flutter pub get && ../flutter/bin/flutter build windows
+      run: cd flutter_scom && ../flutter/bin/flutter config --no-cli-animations && ../flutter/bin/flutter pub get && ../flutter/bin/flutter build windows
     - name: build-database
       run: cd database && mkdir cmake-build-debug && ../cmake-3.31.2-windows-x86_64/bin/cmake -S . -B ./cmake-build-debug && ../cmake-3.31.2-windows-x86_64/bin/cmake --build ./cmake-build-debug --target SCOM_database
     - name: bundle
