@@ -78,7 +78,7 @@ jobs:
     - name: build-database
       run: cd database && mkdir cmake-build-debug && ../cmake-3.31.2-windows-x86_64/bin/cmake -S . -B ./cmake-build-debug && ../cmake-3.31.2-windows-x86_64/bin/cmake --build ./cmake-build-debug --target SCOM_database
     - name: bundle
-      run: copy ./database/cmake-build-debug/Debug/SCOM_database.dll ./flutter_scom/build/windows/x64/runner/Release/ && Rename-Item -Path ./flutter_scom/build/windows/x64/runner/Release/SCOM_database.dll -NewName database.dll && Compress-Archive -Path ./flutter_scom/build/windows/x64/runner/Release/ -DestinationPath ./windows-release.zip
+      run: Copy-Item -Path ./database/cmake-build-debug/Debug/SCOM_database.dll -Destination ./flutter_scom/build/windows/x64/runner/Release/database.dll -Force && Compress-Archive -Path ./flutter_scom/build/windows/x64/runner/Release/ -DestinationPath ./windows-release.zip
 
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v4.4.3
