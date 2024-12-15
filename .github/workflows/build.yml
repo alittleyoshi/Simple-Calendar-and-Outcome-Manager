@@ -24,7 +24,7 @@ jobs:
     - name: build-flutter-scom
       run: cd flutter_scom && ../flutter/bin/flutter pub get && ../flutter/bin/flutter build linux
     - name: build-database
-      run: cd database && mkdir cmake-build-debug && ../cmake-3.31.2-linux-x86_64/bin/cmake --build ./cmake-build-debug --target SCOM_database
+      run: cd database && mkdir cmake-build-debug && ../cmake-3.31.2-linux-x86_64/bin/cmake -S .. -B ./cmake-build-debug && ../cmake-3.31.2-linux-x86_64/bin/cmake --build ./cmake-build-debug --target SCOM_database
     - name: bundle
       run: cp ./database/cmake-build-debug/libSCOM_database.so ./flutter_scom/build/linux/x64/release/bundle/lib/database.so && tar -zcvf ./linux-release.tar.gz ./flutter_scom/build/linux/x64/release/bundle/
 
@@ -52,7 +52,7 @@ jobs:
     - name: build-flutter-scom
       run: cd flutter_scom && ../flutter/bin/flutter pub get && ../flutter/bin/flutter build windows
     - name: build-database
-      run: cd database && mkdir cmake-build-debug && ../cmake-3.31.2-windows-x86_64/bin/cmake --build ./cmake-build-debug --target SCOM_database
+      run: cd database && mkdir cmake-build-debug && ../cmake-3.31.2-windows-x86_64/bin/cmake -S .. -B ./cmake-build-debug && ../cmake-3.31.2-windows-x86_64/bin/cmake --build ./cmake-build-debug --target SCOM_database
     - name: bundle
       run: copy ./database/cmake-build-debug/libSCOM_database.dll ./flutter/build/windows/x64/runner/Release/database.dll && tar -zcvf ../windows-release.tar.gz ../flutter_scom/build/windows/x64/runner/Release/
 
