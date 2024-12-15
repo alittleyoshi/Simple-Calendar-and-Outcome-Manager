@@ -36,7 +36,7 @@ jobs:
     - name: cmake-install
       run: tar -xf ./cmake-3.31.2-linux-x86_64.tar.gz -C .
     - name: build-flutter-scom
-      run: cd flutter_scom && ../flutter/bin/flutter config --no-cli-animations && ../flutter/bin/flutter pub get && ../flutter/bin/flutter build linux
+      run: cd flutter_scom && ../flutter/bin/flutter config --no-analytics && ../flutter/bin/flutter config --no-cli-animations && ../flutter/bin/flutter pub get && ../flutter/bin/flutter build linux
     - name: build-database
       run: cd database && mkdir cmake-build-debug && ../cmake-3.31.2-linux-x86_64/bin/cmake -S . -B ./cmake-build-debug && ../cmake-3.31.2-linux-x86_64/bin/cmake --build ./cmake-build-debug --target SCOM_database
     - name: bundle
@@ -74,7 +74,7 @@ jobs:
     - name: cmake-install
       run: Expand-Archive –Path .\cmake-3.31.2-windows-x86_64.zip -Destination .
     - name: build-flutter-scom
-      run: cd flutter_scom && ../flutter/bin/flutter config --no-cli-animations && ../flutter/bin/flutter pub get && ../flutter/bin/flutter build windows
+      run: cd flutter_scom && ../flutter/bin/flutter config --no-analytics && ../flutter/bin/flutter config --no-cli-animations && ../flutter/bin/flutter pub get && ../flutter/bin/flutter build windows
     - name: build-database
       run: cd database && mkdir cmake-build-debug && ../cmake-3.31.2-windows-x86_64/bin/cmake -S . -B ./cmake-build-debug && ../cmake-3.31.2-windows-x86_64/bin/cmake --build ./cmake-build-debug --target SCOM_database
     - name: bundle
