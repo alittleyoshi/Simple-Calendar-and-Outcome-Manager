@@ -8,11 +8,6 @@
 
 #define DART_API extern "C" __attribute__((visibility("default"))) __attribute__((used))
 
-// TODO move these into Manager
-int tasklist_num;
-int tasklist_id;
-int cut_tasklist_id;
-
 std::string timestampToString(const time_t timestamp) {
     const std::tm* tm = std::localtime(&timestamp);
     std::stringstream ss;
@@ -63,33 +58,13 @@ DatabaseManager::DatabaseManager(const std::string& dbName) {
 DatabaseManager::~DatabaseManager() { sqlite3_close(db); }
 
 int DatabaseManager::get_tasklist_cur_id() const {
-    std::string sql = "SELECT MAX(ID) FROM TASKLISTS";
-    char* errMsg = nullptr;
-
-    auto callback = [](void* data, int argc, char** argv, char** azColName) -> int {
-        int* result = static_cast<int*>(data);
-        if (argv[0] != nullptr) {
-            *result = std::stoi(argv[0]);
-        }
-        return 0;
-    };
-
-    int res = 0;
-    int rc = sqlite3_exec(db, sql.c_str(), callback, &res, &errMsg);
-
-    if (rc != SQLITE_OK) {
-        std::cerr << "In get_tasklist_cur_id, when get max id," << std::endl;
-        std::cerr << "SQL error: " << errMsg << std::endl;
-        sqlite3_free(errMsg);
-    }
-
-    return res;
+    return tasklist_id;
 }
 
-int DatabaseManager::add_tasklist(const std::string& list_name, const int list_id) const {
+int DatabaseManager::add_tasklist(const std::string& list_name) {
 
     // create a task table
-    std::string pre = "CREATE TABLE IF NOT EXISTS TASKLIST" + std::to_string(list_id) +
+    std::string pre = "CREATE TABLE IF NOT EXISTS TASKLIST" + std::to_string(++tasklist_id) +
         "("
         "ID INTEGER PRIMARY KEY, "
         "TITLE TEXT NOT NULL, "
@@ -110,7 +85,7 @@ int DatabaseManager::add_tasklist(const std::string& list_name, const int list_i
     }
 
     // Insert new tasklist record
-    std::string insertList = "INSERT INTO TASKLISTS (TASK_ID, LIST_NAME, ID) VALUES (0, '" + list_name + "', " + std::to_string(list_id) + ");";
+    std::string insertList = "INSERT INTO TASKLISTS (TASK_ID, LIST_NAME, ID) VALUES (0, '" + list_name + "', " + std::to_string(tasklist_id) + ");";
 
     rc = sqlite3_exec(db, insertList.c_str(), nullptr, nullptr, &errMsg);
 
@@ -222,6 +197,58 @@ int DatabaseManager::init_task_list_table() const {
     return 0;
 }
 
+int DatabaseManager::after_init() {
+    {
+        std::string sql = "SELECT count(*) FROM TASKLISTS;";
+        char* errMsg = nullptr;
+
+        static int res;
+        res = 0;
+
+        auto callback = [](void* data, int argc, char** argv, char** azColName) {
+            res = std::stoi(argv[0]);
+            return 0;
+        };
+
+        int rc = sqlite3_exec(db, sql.c_str(), callback, nullptr, &errMsg);
+
+        if (rc != SQLITE_OK) {
+            std::cerr << "In after_init, when get tasklist num" << std::endl;
+            std::cerr << "SQL error: " << errMsg << std::endl;
+            sqlite3_free(errMsg);
+            return -1;
+        }
+
+        tasklist_num = res;
+    }
+    {
+        std::string sql = "SELECT MAX(ID) FROM TASKLISTS";
+        char* errMsg = nullptr;
+
+        auto callback = [](void* data, int argc, char** argv, char** azColName) -> int {
+            int* result = static_cast<int*>(data);
+            if (argv[0] != nullptr) {
+                *result = std::stoi(argv[0]);
+            }
+            return 0;
+        };
+
+        int res = 0;
+        int rc = sqlite3_exec(db, sql.c_str(), callback, &res, &errMsg);
+
+        if (rc != SQLITE_OK) {
+            std::cerr << "In after_init, when get max id," << std::endl;
+            std::cerr << "SQL error: " << errMsg << std::endl;
+            sqlite3_free(errMsg);
+            return -1;
+        }
+
+        tasklist_id = res;
+    }
+
+    return 0;
+}
+
 int DatabaseManager::query_tasklist_id_by_num(int list_num) const {
     auto sql = "SELECT ID FROM TASKLISTS LIMIT " + std::to_string(list_num) + ", 1;";
     int res = 0;
@@ -320,7 +347,7 @@ int DatabaseManager::delete_task_by_id(int cur_tasklist, int id) const {
     return 0;
 }
 
-int DatabaseManager::delete_tasklist_by_id(int tasklist_id) const {
+int DatabaseManager::delete_tasklist_by_id(int tasklist_id) {
     std::string sql = "DELETE FROM TASKLISTS WHERE ID = " + std::to_string(tasklist_id) + ";";
 
     char* errMsg = nullptr;
@@ -503,26 +530,7 @@ bool DatabaseManager::queryTaskLists() const {
 
 int DatabaseManager::query_task_lists_num() const {
 
-    std::string sql = "SELECT count(*) FROM TASKLISTS;";
-    char* errMsg = nullptr;
-
-    static int res;
-    res = 0;
-
-    auto callback = [](void* data, int argc, char** argv, char** azColName) {
-        res = std::stoi(argv[0]);
-        return 0;
-    };
-
-    int rc = sqlite3_exec(db, sql.c_str(), callback, nullptr, &errMsg);
-
-    if (rc != SQLITE_OK) {
-        std::cerr << "In queryTaskListsNum," << std::endl;
-        std::cerr << "SQL error: " << errMsg << std::endl;
-        sqlite3_free(errMsg);
-        return -1;
-    }
-    return res;
+    return tasklist_num;
 }
 
 // query current task id ?
@@ -559,24 +567,24 @@ int Dart_init() {
     }
     std::cerr << "Create TaskListTable finished." << std::endl;
 
-    tasklist_num = db->query_task_lists_num();
-    std::cerr << "Init tasklist_num: " << tasklist_num << std::endl;
+    db->after_init();
+    std::cerr << "Init tasklist_num: " << db->query_task_lists_num() << std::endl;
 
-    tasklist_id = db->get_tasklist_cur_id();
+    // tasklist_id = db->get_tasklist_cur_id();
 
-    while (tasklist_num < 1) { // if no list found, create a new one
-        if (db->add_tasklist("Todo List", ++tasklist_id) == -1) {
-            std::cerr << "Add tasklist failed." << std::endl;
-            return -1;
-        }
-    }
+    // while (db->query_task_lists_num() < 1) { // if no list found, create a new one
+    //     if (db->add_tasklist("List", ++tasklist_id) == -1) {
+    //         std::cerr << "Add tasklist failed." << std::endl;
+    //         return -1;
+    //     }
+    // }
 
     std::cerr << "Create Table finished." << std::endl;
 
     return 0;
 }
 
-int Dart_query_tasklist_num() { return tasklist_num; }
+int Dart_query_tasklist_num() { return db->query_task_lists_num(); }
 
 int Dart_query_tasklist_id(int num) {
     int res = db->query_tasklist_id_by_num(num);
@@ -601,10 +609,10 @@ Dart_Task Dart_get_task(int list_num, int task_num) {
 }
 
 int Dart_create_tasklist(const char* list_name) {
-    if (db->add_tasklist(list_name, ++tasklist_id) == -1) {
+    if (db->add_tasklist(list_name) == -1) {
         return -1;
     }
-    return tasklist_id;
+    return db->get_tasklist_cur_id();
 }
 
 int Dart_create_task(int list_num, const char* title, const char* description, const char* startDate,

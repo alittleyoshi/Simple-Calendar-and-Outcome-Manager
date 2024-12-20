@@ -1,6 +1,9 @@
 name: Building
 
 on:
+  push:
+    branches:
+    - flutter
   workflow_dispatch:
 
 jobs:

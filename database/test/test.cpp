@@ -41,8 +41,8 @@ int test_manager() {
     db = new DatabaseManager("test.db");
 
     db->init_task_list_table();
-    db->add_tasklist("Todo List", 1);
-    db->add_tasklist("Todo List", 2);
+    db->add_tasklist("Todo List");
+    db->add_tasklist("Todo List");
 
     int res;
 
