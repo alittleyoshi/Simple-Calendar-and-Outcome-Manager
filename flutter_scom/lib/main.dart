@@ -234,32 +234,6 @@ class _MyHomePageState extends State<MyHomePage> {
       return Scaffold(
         body: Row (
           children: [
-            SafeArea(
-              child:
-                NavigationRail(
-                  extended: constraints.maxWidth >= 800,
-                  destinations: [
-                    NavigationRailDestination(
-                      icon: Icon(Icons.checklist),
-                      label: Text('SCOM'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(calendarIcon),
-                      label: Text('Calendar'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.settings),
-                      label: Text('Settings'),
-                    ),
-                  ],
-                  selectedIndex: selectedIndex,
-                  onDestinationSelected: (value){
-                    setState(() {
-                      selectedIndex = value;
-                    });
-                  },
-                ),
-            ),
             Expanded(
               child: Container(
                 color: Theme.of(context).colorScheme.primaryContainer,
@@ -568,7 +542,7 @@ class _TodoPageState extends State<TodoPage> {
             child: myNavigationRail,
           ),
           Expanded(
-            flex: 3,
+            flex: 4,
             child: Container(
               color: Theme.of(context).colorScheme.primaryContainer,
               child : page,
