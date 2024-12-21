@@ -271,17 +271,37 @@ int DatabaseManager::query_tasklist_id_by_num(int list_num) const {
     return res;
 }
 
-int DatabaseManager::insert_task(int cur_tasklist, // tasklist id
-                                int task_id, const std::string& title, const std::string& description,
-                                long long startTime, long long endTime, int stat) const {
-    std::string sql = "INSERT INTO TASKLIST" + std::to_string(cur_tasklist) +
+int DatabaseManager::insert_task(int cur_tasklist, const std::string& title, const std::string& description,
+                                 long long startTime, long long endTime, int stat) const {
+
+    std::string sql = "SELECT TASK_ID FROM TASKLISTS WHERE ID = " +
+        std::to_string(cur_tasklist) + ";";
+
+    auto callback = [](void* data, int argc, char** argv, char** azColName) {
+        *static_cast<int*>(data) = std::stoi(argv[0]);
+        return 0;
+    };
+
+    int task_id = 0;
+    char* errMsg = nullptr;
+    int rc = sqlite3_exec(db, sql.c_str(), callback, &task_id, &errMsg);
+    task_id++;
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "In insertTask, when query task id" << std::endl;
+        std::cerr << "SQL error: " << errMsg << std::endl;
+        sqlite3_free(errMsg);
+        return -1;
+    }
+
+
+    sql = "INSERT INTO TASKLIST" + std::to_string(cur_tasklist) +
         "(ID, TITLE, DESCRIPTION, START_TIME, END_TIME, STAT) "
         "VALUES (" +
         std::to_string(task_id) + ", '" + title + "', '" + description + "', " + std::to_string(startTime) + ", " +
         std::to_string(endTime) + ", " + std::to_string(stat) + ");";
 
-    char* errMsg = nullptr;
-    int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &errMsg);
+    rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &errMsg);
 
     if (rc != SQLITE_OK) {
         std::cerr << "In insertTask, when insert task into tasklist" << std::endl;
@@ -291,8 +311,8 @@ int DatabaseManager::insert_task(int cur_tasklist, // tasklist id
     }
 
     // update task_num in tasklists
-    sql = "UPDATE TASKLISTS SET TASK_ID = TASK_ID + 1 WHERE LIST_NAME = 'TASKLIST" +
-        std::to_string(cur_tasklist) + "';";
+    sql = "UPDATE TASKLISTS SET TASK_ID = TASK_ID + 1 WHERE ID = " +
+        std::to_string(cur_tasklist) + ";";
 
     rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &errMsg);
 
@@ -453,6 +473,29 @@ bool DatabaseManager::updateTaskStatus(int cur_tasklist, int id, int stat) const
     return true;
 }
 
+std::string DatabaseManager::query_tasklist_name_by_id(int id) const {
+    std::string sql = "SELECT LIST_NAME FROM TASKLISTS WHERE ID = " + std::to_string(id) + ";";
+
+    auto callback = [](void* data, int argc, char** argv, char** azColName) {
+        *static_cast<std::string*>(data) = argv[0];
+        return 0;
+    };
+
+    char* errMsg = nullptr;
+    std::string res;
+    int rc = sqlite3_exec(db, sql.c_str(), callback, &res, &errMsg);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "In query_tasklist_name_by_id," << std::endl;
+        std::cerr << "SQL error: " << errMsg << std::endl;
+        sqlite3_free(errMsg);
+        return "";
+    }
+
+    return res;
+}
+
+
 // query by given list_id and task_id
 int DatabaseManager::query_task_by_id(int list_id, int task_id, Task* task) const {
     if (task == nullptr) {
@@ -592,6 +635,14 @@ int Dart_query_tasklist_id(int num) {
     return res;
 }
 
+char* Dart_query_tasklist_name(int id) {
+    std::string res = db->query_tasklist_name_by_id(id);
+    auto ret = new char[res.length() + 1];
+    strcpy(ret, res.c_str());
+    std::cerr << "Tasklist name: " << res << std::endl;
+    return ret;
+}
+
 int Dart_query_task_num(int task_num) {
     int res = db->query_tasks_num(task_num);
     std::cerr << "Task num: " << res << std::endl;
@@ -619,7 +670,8 @@ int Dart_create_task(int list_num, const char* title, const char* description, c
                               const char* endDate, int status) {
     auto id = db->query_task_id_from_list(list_num);
     std::cerr << "Create task id: " << id << std::endl;
-    if (db->insert_task(list_num, id, title, description, string_to_timestamp(startDate), string_to_timestamp(endDate), status) == -1) {
+    if (db->insert_task(list_num, title, description, string_to_timestamp(startDate), string_to_timestamp(endDate),
+                        status) == -1) {
         return -1;
     }
     std::cerr << "Create task finished." << std::endl;

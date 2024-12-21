@@ -33,8 +33,8 @@ public:
 
     int add_tasklist(const std::string& list_name);
     int get_tasklist_cur_id() const;
-    int insert_task(int cur_tasklist, int task_id, const std::string& title, const std::string& description,
-                   long long startTime, long long endTime, int stat) const;
+    int insert_task(int cur_tasklist, const std::string& title, const std::string& description, long long startTime,
+                    long long endTime, int stat) const;
     int query_tasklist_id_by_num(int list_num) const;
     int query_tasks_num(int cur_tasklist) const;
     int delete_task_by_id(int cur_tasklist, int id) const;
@@ -45,6 +45,7 @@ public:
     [[deprecated]] bool updateTaskTitle(int cur_tasklist, int id, const std::string& title) const;
     [[deprecated]] bool updateTaskStatus(int cur_tasklist, int id, int stat) const;
     int query_task_by_id(int list_id, int task_id, Task* task) const;
+    std::string query_tasklist_name_by_id(int id) const;
     int init_task_list_table() const;
     int after_init() ;
     [[deprecated]] bool queryTaskLists() const;
@@ -68,6 +69,7 @@ extern "C" {
     int Dart_init();
     int Dart_query_tasklist_num();
     int Dart_query_tasklist_id(int num);
+    char* Dart_query_tasklist_name(int id);
     int Dart_query_task_num(int task_num);
     Dart_Task Dart_get_task(int list_num, int task_num);
     int Dart_create_tasklist(const char* list_name);

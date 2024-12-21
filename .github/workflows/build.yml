@@ -19,7 +19,10 @@ jobs:
       env:
         cache-name: cache-flutter
       with:
-        path: ./flutter_scom/build/
+        path: |
+          ./flutter_scom/build/
+          ./flutter_scom/.dart_tool/
+          ~/.pub-cache/
         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./flutter_scom/lib/main.dart') }}
         restore-keys: |
           ${{ runner.os }}-build-${{ env.cache-name }}-
@@ -63,7 +66,10 @@ jobs:
       env:
         cache-name: cache-flutter
       with:
-        path: ./flutter_scom/build/
+        path: |
+          ./flutter_scom/build/
+          ./flutter_scom/.dart_tool/
+          ~/.pub-cache/
         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./flutter_scom/lib/main.dart') }}
         restore-keys: |
           ${{ runner.os }}-build-${{ env.cache-name }}-

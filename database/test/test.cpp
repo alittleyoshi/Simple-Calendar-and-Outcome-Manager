@@ -44,16 +44,18 @@ int test_manager() {
     db->add_tasklist("Todo List");
     db->add_tasklist("Todo List");
 
+    assert(db->query_tasklist_name_by_id(1) == "Todo List");
+
     int res;
 
     res = db->query_tasks_num(1);
     assert(res == 0);
 
-    db->insert_task(2, 1, "test", "test", 1, 2, 0);
+    db->insert_task(2, "test", "test", 1, 2, 0);
     res = db->query_tasks_num(2);
     assert(res == 1);
 
-    db->insert_task(2, 2, "test", "test", 1, 2, 0);
+    db->insert_task(2, "test", "test", 1, 2, 0);
     res = db->query_tasks_num(2);
     assert(res == 2);
 
@@ -64,7 +66,7 @@ int test_manager() {
     res = db->query_task_lists_num();
     assert(res == 2);
 
-    db->insert_task(2, 3, "test", "test", 1, 2, 0);
+    db->insert_task(2, "test", "test", 1, 2, 0);
     auto task = new Task;
     db->query_task_by_num(2, 1, task);
     assert(task->id == 3);

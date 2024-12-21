@@ -21,6 +21,10 @@ final queryTaskListNum = _lib
     .lookupFunction<Int32 Function(), int Function()>
   ('Dart_query_tasklist_num');
 
+final queryTaskListName = _lib
+    .lookupFunction<Pointer<Utf8> Function(Int32 listId), Pointer<Utf8> Function(int listId)>
+  ('Dart_query_tasklist_name');
+
 final queryTaskNum = _lib
     .lookupFunction<Int32 Function(Int32 listId), int Function(int listID)>
   ('Dart_query_task_num');
@@ -98,7 +102,7 @@ class MyAppState extends ChangeNotifier {
   var listIndex = 0; // use for what?
   var afterDelete = false;
 
-  void init() {
+  void init() { // TODO free ptr trans from c
     if (!initialized) {
       initDatabaseC();
       var listNum = queryTaskListNum();
@@ -107,10 +111,11 @@ class MyAppState extends ChangeNotifier {
         var list = TodoList();
         list.id = queryTaskListId(i);
         list.indexed = i;
-        var taskNum = queryTaskNum(i);
+        list.name = queryTaskListName(list.id).toDartString();
+        var taskNum = queryTaskNum(list.id);
         print("List$i, taskNum: $taskNum");
         for (var j = 0; j < taskNum; j++) {
-          var taskC = getTaskC(i, j);
+          var taskC = getTaskC(list.id, j);
           var task = changeTaskCtoTask(taskC);
           list.taskList.add(task);
         }
@@ -141,6 +146,7 @@ class MyAppState extends ChangeNotifier {
     var newList = TodoList();
     newList.id = newTaskListId;
     newList.indexed = todoList.length;
+    newList.name = listName;
     todoList.add(newList);
     notifyListeners();
   }
@@ -309,6 +315,7 @@ int getTask(int listId) {
 class TodoList {
   var id = 0;
   var indexed = 0;
+  var name = 'Todo List';
   var taskList = <Task>[];
 }
 
@@ -400,6 +407,102 @@ class _MyNavigationRailState extends State<MyNavigationRail> {
   }
 }
 
+class AddTaskListPage<T> extends PopupRoute<T> {
+  @override
+  Color? get barrierColor => Colors.black.withAlpha(0x50);
+
+  // This allows the popup to be dismissed by tapping the scrim or by pressing
+  // the escape key on the keyboard.
+  @override
+  bool get barrierDismissible => true;
+
+  @override
+  String? get barrierLabel => 'Add Task List';
+
+  @override
+  Duration get transitionDuration => const Duration(milliseconds: 300);
+
+  @override
+  Widget buildPage(BuildContext context, Animation<double> animation,
+      Animation<double> secondaryAnimation) {
+
+    var titleController = TextEditingController();
+    var appState = context.watch<MyAppState>();
+
+    return Center(
+      child: DefaultTextStyle(
+        style: Theme.of(context).textTheme.bodyMedium!,
+        child: Container(
+          margin: EdgeInsets.all(40),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: Colors.white,
+          ),
+          child: Column(
+            children: [
+              SizedBox(height: 10.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Add Task List',
+                      style: Theme.of(context).textTheme.headlineLarge),
+                ],
+              ),
+              SizedBox(height: 10.0),
+              Expanded(
+                // padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    SizedBox(width: 10.0),
+                    Expanded(
+                      // padding: const EdgeInsets.all(8.0),
+                      child: Scaffold(
+                        body: Column(
+                          children: [
+                            TextField(
+                              controller: titleController,
+                              decoration: InputDecoration(
+                                labelText: 'Title',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 10.0),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10.0),
+                  ],
+                ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(),
+                  ),
+                  ElevatedButton(
+                    onPressed: (){
+                      appState.addList(titleController.text);
+                      Navigator.of(context).pop();
+                    },
+                    child: Text("Add"),
+                  ),
+                  Expanded(
+                    child: SizedBox(),
+                  )
+                ],
+              ),
+              SizedBox(height: 10.0,)
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _TodoPageState extends State<TodoPage> {
   var selectedIndex = 0;
 
@@ -414,7 +517,7 @@ class _TodoPageState extends State<TodoPage> {
       children: [
         Icon(Icons.star),
         SizedBox(width: 10.0),
-        Text("Todo List ${list.id + 1}"),
+        Text(list.name),
       ],
     )).toList();
 
@@ -438,6 +541,10 @@ class _TodoPageState extends State<TodoPage> {
       destinations: destination,
       onDestinationSelected: (index){
         setState(() {
+          if (index == appState.todoList.length) {
+            Navigator.of(context).push(AddTaskListPage());
+            return;
+          }
           selectedIndex = index;
           appState.listIndex = index;
         });
@@ -445,12 +552,10 @@ class _TodoPageState extends State<TodoPage> {
       selectedIndex: selectedIndex,
     );
 
-    if(selectedIndex == appState.todoList.length) {
-      setState(() {
-        appState.addList("Todo List");
-      });
-      return build(context);
-    }
+    // if(selectedIndex == appState.todoList.length) {
+    //   Navigator.of(context).push(AddTaskListPage());
+    //   return build(context);
+    // }
 
     page = GeneratorTodoPage(listIndex: selectedIndex);
 
@@ -523,7 +628,7 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
                   SizedBox(width: 10),
                   Icon(Icons.star),
                   SizedBox(width: 10),
-                  Text("Todo List ${widget.listIndex + 1}"),
+                  Text(appState.todoList[widget.listIndex].name),
                   Expanded(child: SizedBox()),
                   ElevatedButton.icon(
                     onPressed: () {
