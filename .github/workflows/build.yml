@@ -11,6 +11,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    permissions:
+      id-token: write
+      attestations: write
+
     steps:
     - uses: actions/checkout@v4
 
@@ -48,6 +52,11 @@ jobs:
     - name: bundle
       run: cp ./database/cmake-build-debug/libSCOM_database.so ./flutter_scom/build/linux/x64/release/bundle/lib/database.so && tar -zcvf ./linux-release.tar.gz ./flutter_scom/build/linux/x64/release/bundle/
 
+    - name: Attest
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-path: './linux-release.tar.gz'
+
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v4.4.3
       with:
@@ -57,6 +66,10 @@ jobs:
   build-on-windows:
 
     runs-on: windows-latest
+
+    permissions:
+      id-token: write
+      attestations: write
 
     steps:
     - uses: actions/checkout@v4
@@ -88,6 +101,11 @@ jobs:
       run: cd database && mkdir cmake-build-debug && ../cmake-3.31.2-windows-x86_64/bin/cmake -S . -B ./cmake-build-debug && ../cmake-3.31.2-windows-x86_64/bin/cmake --build ./cmake-build-debug --target SCOM_database
     - name: bundle
       run: Copy-Item -Path ./database/cmake-build-debug/Debug/SCOM_database.dll -Destination ./flutter_scom/build/windows/x64/runner/Release/database.dll -Force && Compress-Archive -Path ./flutter_scom/build/windows/x64/runner/Release/ -DestinationPath ./windows-release.zip
+
+    - name: Attest
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-path: './windows-release.zip'
 
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v4.4.3
