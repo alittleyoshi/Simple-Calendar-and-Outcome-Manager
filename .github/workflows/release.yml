@@ -1,0 +1,90 @@
+name: Release
+
+on:
+  push:
+    tag:
+  workflow_dispatch:
+
+jobs:
+  release:
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      attestations: write
+
+    steps:
+    - uses: ./.github/workflows/build.yml
+
+    - name: download-windows-build
+      uses: actions/download-artifact@v4.1.8
+      with:
+        # Name of the artifact to download. If unspecified, all artifacts for the run are downloaded.
+        name: windows-release
+        # Destination path. Supports basic tilde expansion. Defaults to $GITHUB_WORKSPACE
+        path: .
+
+    - name: download-linux-build
+      uses: actions/download-artifact@v4.1.8
+      with:
+        # Name of the artifact to download. If unspecified, all artifacts for the run are downloaded.
+        name: linux-release
+        # Destination path. Supports basic tilde expansion. Defaults to $GITHUB_WORKSPACE
+        path: .
+
+    - name: Attest
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-path: '*-release.*'
+
+
+  build-on-windows:
+
+    runs-on: windows-latest
+
+    permissions:
+      id-token: write
+      attestations: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Cache
+      uses: actions/cache@v4.2.0
+      env:
+        cache-name: cache-flutter
+      with:
+        path: |
+          ./flutter_scom/build/
+          ./flutter_scom/.dart_tool/
+          ~/.pub-cache/
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./flutter_scom/lib/main.dart') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+
+    - name: flutter-download
+      run: curl -O https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/flutter_windows_3.27.0-stable.zip
+    - name: flutter-install
+      run: Expand-Archive –Path .\flutter_windows_3.27.0-stable.zip -Destination .
+    - name: cmake-download
+      run: curl -OJL https://github.com/Kitware/CMake/releases/download/v3.31.2/cmake-3.31.2-windows-x86_64.zip
+    - name: cmake-install
+      run: Expand-Archive –Path .\cmake-3.31.2-windows-x86_64.zip -Destination .
+    - name: build-flutter-scom
+      run: cd flutter_scom && ../flutter/bin/flutter config --no-analytics && ../flutter/bin/flutter config --no-cli-animations && ../flutter/bin/flutter pub get && ../flutter/bin/flutter build windows
+    - name: build-database
+      run: cd database && mkdir cmake-build-debug && ../cmake-3.31.2-windows-x86_64/bin/cmake -S . -B ./cmake-build-debug && ../cmake-3.31.2-windows-x86_64/bin/cmake --build ./cmake-build-debug --target SCOM_database
+    - name: bundle
+      run: Copy-Item -Path ./database/cmake-build-debug/Debug/SCOM_database.dll -Destination ./flutter_scom/build/windows/x64/runner/Release/database.dll -Force && Compress-Archive -Path ./flutter_scom/build/windows/x64/runner/Release/ -DestinationPath ./windows-release.zip
+
+    - name: Attest
+      uses: actions/attest-build-provenance@v2
+      with:
+        subject-path: './windows-release.zip'
+
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v4.4.3
+      with:
+        name: winodws-release
+        path: windows-release.zip
