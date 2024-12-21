@@ -41,3 +41,10 @@ jobs:
       with:
         subject-path: '*-release.*'
 
+
+    - uses: ncipollo/release-action@v1
+      with:
+        artifacts: "./*-release.*"
+        token: ${{ secrets.RELEASE_TOKEN }}
+        prerelease: true
+        artifactErrorsFailBuild: false
