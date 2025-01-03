@@ -36,6 +36,8 @@ int test_queryTaskListsNum() ;
 int test_queryTaskIdFromList() ;
 */
 
+int test_move_task_by_id(DatabaseManager*);
+
 int test_manager() {
     remove("test.db");
     db = new DatabaseManager("test.db");
@@ -78,6 +80,18 @@ int test_manager() {
     // auto exist_db = new DatabaseManager("tasks.db");
     // exist_db->init_task_list_table();
 
+    test_move_task_by_id(db);
+
+    return 0;
+}
+
+int test_move_task_by_id(DatabaseManager *db) {
+    int id1 = db->add_tasklist("Test1");
+    int id2 = db->add_tasklist("Test2");
+    assert(db->insert_task(id1, "test", "test", 1, 2, 0) == 0);
+    assert(db->query_tasks_num(id1) == 1 && db->query_tasks_num(id2) == 0);
+    assert(db->move_task_by_id(id1, id2, 1) == 0);
+    assert(db->query_tasks_num(id1) == 0 && db->query_tasks_num(id2) == 1);
     return 0;
 }
 

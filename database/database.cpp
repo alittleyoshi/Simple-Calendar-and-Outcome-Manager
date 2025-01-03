@@ -598,6 +598,27 @@ int DatabaseManager::query_task_id_from_list(int list_id) const {
     return ret;
 }
 
+int DatabaseManager::move_task_by_id(int cur_tasklist, int to_tasklist, int task_id) const {
+
+    auto task = new Task;
+    if (query_task_by_id(cur_tasklist, task_id, task) != 0) {
+        std::cerr << "In move_task_by_id." << std::endl;
+        return -1;
+    }
+
+    if (delete_task_by_id(cur_tasklist, task_id) != 0) {
+        std::cerr << "In move_task_by_id." << std::endl;
+        return -1;
+    }
+
+    if (insert_task(to_tasklist, task->title, task->description, string_to_timestamp(task->startDate), string_to_timestamp(task->endDate), task->status) != 0) {
+        std::cerr << "In move_task_by_id" << std::endl;
+        return -1;
+    }
+
+    return 0;
+}
+
 // TODO add init check, check if init is called before any operation
 
 DatabaseManager* db;

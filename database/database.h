@@ -51,6 +51,7 @@ public:
     [[deprecated]] bool queryTaskLists() const;
     int query_task_lists_num() const;
     int query_task_id_from_list(int list_id) const;
+    int move_task_by_id(int cur_tasklist, int to_tasklist, int task_id) const;
 
 private:
     sqlite3* db;
