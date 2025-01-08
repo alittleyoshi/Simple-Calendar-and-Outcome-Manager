@@ -7,6 +7,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import ui.event.PlanningEvent;
@@ -27,8 +28,11 @@ public class PlanAddingPane extends AnchorPane implements Initializable {
             throw new RuntimeException(e);
         }
     }
+
     @FXML
-    TextField _planAddingTitleText, _planAddingDescriptionText;
+    TextField _planAddingTitleText;
+    @FXML
+    TextArea _planAddingDescriptionText;
     @FXML
     DatePicker _planAddingStartDate, _planAddingEndDate;
     @FXML
@@ -115,10 +119,27 @@ public class PlanAddingPane extends AnchorPane implements Initializable {
     private BooleanProperty titleErrorHint;
 
     @Override
-    public void initialize(URL location, ResourceBundle resources) {}
+    public void initialize(URL location, ResourceBundle resources) {
+        _planAddingStartDate.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (_planAddingEndDate.getValue() == null || newValue.isAfter(_planAddingEndDate.getValue())) {
+                _planAddingEndDate.setValue(newValue);
+            }
+        });
+        _planAddingEndDate.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue.isBefore(_planAddingStartDate.getValue())) {
+                _planAddingStartDate.setValue(_planAddingEndDate.getValue());
+            }
+        });
+        _planAddingStartDate.setValue(LocalDate.now());
+        visibleProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                _planAddingStartDate.setValue(LocalDate.now());
+            }
+        });
+    }
     @FXML
     private void onCancellingPlanAction() {
-        fireEvent(new PlanningEvent(PlanningEvent.CANCELLING));
+        fireEvent(new PlanningEvent(PlanningEvent.Type.CANCELLING, getTitle(), getDescription(), getStartDate(), getEndDate()));
     }
     public ObjectProperty<EventHandler<PlanningEvent>> onCancellingProperty() {
         return onCancelling;
@@ -145,7 +166,13 @@ public class PlanAddingPane extends AnchorPane implements Initializable {
     };
     @FXML
     private void onCreatingPlanAction() {
-        fireEvent(new PlanningEvent(PlanningEvent.CREATING));
+        if (getTitle().isEmpty()) {
+            setTitleErrorHint(true);
+            return;
+        } else {
+            setTitleErrorHint(false);
+        }
+        fireEvent(new PlanningEvent(PlanningEvent.Type.CREATING, getTitle(), getDescription(), getStartDate(), getEndDate()));
     }
     public ObjectProperty<EventHandler<PlanningEvent>> onCreatingProperty() {
         return onCreating;

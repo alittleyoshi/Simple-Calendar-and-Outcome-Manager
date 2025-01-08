@@ -8,38 +8,47 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-public final class Plan {
+public final class Plan implements Information {
     private final int _id;
     private Date _startTime, _endTime;
     private String _title, _description;
     private final List<Task> _tasks = new ArrayList<>();
+    @Override
     public int getID() {
         return _id;
     }
+    @Override
     public Date getStartTime() {
         return _startTime;
     }
+    @Override
     public void setStartTime(Date startTime) {
         _startTime = startTime;
         DatabaseManager.updatePlan(this);
     }
+    @Override
     public Date getEndTime() {
         return _endTime;
     }
+    @Override
     public void setEndTime(Date endTime) {
         _endTime = endTime;
         DatabaseManager.updatePlan(this);
     }
+    @Override
     public String getTitle() {
         return _title;
     }
+    @Override
     public void setTitle(String title) {
         _title = title;
         DatabaseManager.updatePlan(this);
     }
+    @Override
     public String getDescription() {
         return _description;
     }
+    @Override
     public void setDescription(String description) {
         _description = description;
         DatabaseManager.updatePlan(this);

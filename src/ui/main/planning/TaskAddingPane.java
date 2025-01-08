@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import ui.event.PlanningEvent;
@@ -29,7 +30,9 @@ public class TaskAddingPane extends AnchorPane implements Initializable {
         }
     }
     @FXML
-    TextField _taskAddingTitleText, _taskAddingDescriptionText;
+    TextField _taskAddingTitleText;
+    @FXML
+    TextArea _taskAddingDescriptionText;
     @FXML
     DatePicker _taskAddingStartDate, _taskAddingEndDate;
 
@@ -100,10 +103,27 @@ public class TaskAddingPane extends AnchorPane implements Initializable {
     private ObjectProperty<LocalDate> endDateProperty;
 
     @Override
-    public void initialize(URL location, ResourceBundle resources) {}
+    public void initialize(URL location, ResourceBundle resources) {
+        _taskAddingStartDate.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (_taskAddingEndDate.getValue() == null || newValue.isAfter(_taskAddingEndDate.getValue())) {
+                _taskAddingEndDate.setValue(newValue);
+            }
+        });
+        _taskAddingEndDate.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue.isBefore(_taskAddingStartDate.getValue())) {
+                _taskAddingStartDate.setValue(_taskAddingEndDate.getValue());
+            }
+        });
+        _taskAddingStartDate.setValue(LocalDate.now());
+        visibleProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                _taskAddingStartDate.setValue(LocalDate.now());
+            }
+        });
+    }
     @FXML
     public void onCancellingTaskAction() {
-        fireEvent(new PlanningEvent(PlanningEvent.CANCELLING));
+        fireEvent(new PlanningEvent(PlanningEvent.Type.CANCELLING, getTitle(), getDescription(), getStartDate(), getEndDate()));
     }
     public ObjectProperty<EventHandler<PlanningEvent>> onCancellingProperty() {
         return onCancelling;
@@ -130,7 +150,7 @@ public class TaskAddingPane extends AnchorPane implements Initializable {
     };
     @FXML
     public void onCreatingTaskAction() {
-        fireEvent(new PlanningEvent(PlanningEvent.CREATING));
+        fireEvent(new PlanningEvent(PlanningEvent.Type.CREATING, getTitle(), getDescription(), getStartDate(), getEndDate()));
     }
     public ObjectProperty<EventHandler<PlanningEvent>> onCreatingProperty() {
         return onCreating;

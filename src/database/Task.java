@@ -2,42 +2,51 @@ package database;
 
 import java.util.Date;
 
-public final class Task {
+public final class Task implements Information {
     private final int _id;
     private Date _startTime, _endTime;
     private String _title, _description;
     private Status _status;
     private final Plan _plan;
+    @Override
     public int getID() {
         return _id;
     }
     public Plan getPlan() {
         return _plan;
     }
+    @Override
     public Date getStartTime() {
         return _startTime;
     }
+    @Override
     public void setStartTime(Date startTime) {
         _startTime = startTime;
         DatabaseManager.updateTask(this);
     }
+    @Override
     public Date getEndTime() {
         return _endTime;
     }
+    @Override
     public void setEndTime(Date endTime) {
         _endTime = endTime;
         DatabaseManager.updateTask(this);
     }
+    @Override
     public String getTitle() {
         return _title;
     }
+    @Override
     public void setTitle(String title) {
         _title = title;
         DatabaseManager.updateTask(this);
     }
+    @Override
     public String getDescription() {
         return _description;
     }
+    @Override
     public void setDescription(String description) {
         _description = description;
         DatabaseManager.updateTask(this);

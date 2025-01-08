@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import ui.main.planning.*?>
 
-<?import ui.main.PlanItem?>
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.text.Font?>
-<?import ui.main.planning.PlanAddingPane?>
-<fx:root type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <HBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <children>
@@ -22,26 +18,27 @@
                             </content>
                         </ScrollPane>
                         <Separator />
-                        <AnchorPane focusTraversable="true">
-                            <children>
-                                <VBox alignment="TOP_CENTER" onMouseClicked="#onPlanAddingAction" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                    <children>
+                  <AnchorPane>
+                     <children>
+                              <Button mnemonicParsing="false" onAction="#onPlanAddingAction" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
+                           <graphic>
                                         <VBox id="planItem" alignment="CENTER" spacing="5.0">
                                             <children>
                                                 <Label text="新的计划" />
-                                                <Label text="创建一个新的计划" textFill="#000000b2" />
+                                                <Label text="创建一个新的计划" textFill="#000000b2">
+                                                    <font>
+                                                        <Font size="10.0" />
+                                                    </font>
+                                    </Label>
                                             </children>
                                             <padding>
                                                 <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                             </padding>
                                         </VBox>
-                                    </children>
-                                    <padding>
-                                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                                    </padding>
-                                </VBox>
-                            </children>
-                        </AnchorPane>
+                           </graphic>
+                              </Button>
+                     </children>
+                  </AnchorPane>
                     </children>
                 </VBox>
                 <AnchorPane HBox.hgrow="ALWAYS">
@@ -72,79 +69,8 @@
                                 </VBox>
                                 <Button mnemonicParsing="false" onAction="#onTaskAddingAction" prefHeight="30.0" prefWidth="30.0" text="+" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0" />
                             </children></AnchorPane>
-                        <AnchorPane fx:id="_taskAddingPane" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                            <children>
-                                <StackPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                    <children>
-                                        <VBox maxHeight="-Infinity" maxWidth="-Infinity" spacing="10.0" style="-fx-background-radius: 7;">
-                                            <children>
-                                                <Label text="新的任务">
-                                                    <font>
-                                                        <Font size="20.0" />
-                                                    </font>
-                                                </Label>
-                                                <Label text="标题" />
-                                                <TextField fx:id="_taskAddingTitleText" promptText="一个容易记忆的标题" />
-                                                <Label text="描述" />
-                                                <TextArea fx:id="_taskAddingDescriptionText" promptText="对这个任务的描述和解释" />
-                                                <Label text="开始时间" />
-                                                <DatePicker fx:id="_taskAddingStartDate" editable="false" promptText="开始时间" />
-                                                <Label text="结束时间" />
-                                                <DatePicker fx:id="_taskAddingEndDate" editable="false" promptText="结束时间" />
-                                            </children>
-                                            <padding>
-                                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-                                            </padding>
-                                        </VBox>
-                                    </children></StackPane>
-                                <HBox spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0">
-                                    <children>
-                                        <Button mnemonicParsing="false" onAction="#onCancellingTaskAction" prefHeight="40.0" prefWidth="80.0" text="取消" />
-                                        <Button mnemonicParsing="false" onAction="#onCreatingTaskAction" prefHeight="40.0" prefWidth="80.0" text="创建" />
-                                    </children>
-                                </HBox>
-                            </children>
-                        </AnchorPane>
-                        <PlanAddingPane fx:id="_planAddingPane" visible="false" onCancelling="#onCancellingPlanAction" onCreating="#onCreatingPlanAction" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
-                        <AnchorPane fx:id="_planEditingPane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                            <children>
-                                <StackPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                    <children>
-                                        <VBox maxHeight="-Infinity" maxWidth="-Infinity" spacing="10.0" style="-fx-background-radius: 7;">
-                                            <children>
-                                                <Label text="编辑计划">
-                                                    <font>
-                                                        <Font size="20.0" />
-                                                    </font>
-                                                </Label>
-                                                <HBox spacing="10.0">
-                                                    <children>
-                                                        <Label text="标题" />
-                                                        <Label text="请输入标题" textFill="RED" visible="false" />
-                                                    </children>
-                                                </HBox>
-                                                <TextField promptText="一个容易记忆的标题" />
-                                                <Label text="描述" />
-                                                <TextArea promptText="对这个计划的描述和解释" />
-                                                <Label text="开始时间" />
-                                                <DatePicker editable="false" promptText="开始时间" />
-                                                <Label text="结束时间" />
-                                                <DatePicker editable="false" promptText="结束时间" />
-                                            </children>
-                                            <padding>
-                                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-                                            </padding>
-                                        </VBox>
-                                    </children>
-                                </StackPane>
-                                <HBox spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0">
-                                    <children>
-                                        <Button mnemonicParsing="false" onAction="#onCancellingPlanAction" prefHeight="40.0" prefWidth="80.0" text="取消" />
-                                        <Button mnemonicParsing="false" onAction="#onEditedPlanAction" prefHeight="40.0" prefWidth="80.0" text="完成" />
-                                    </children>
-                                </HBox>
-                            </children>
-                        </AnchorPane>
+                        <PlanAddingPane fx:id="_planAddingPane" onCancelling="#onCancellingPlanAction" onCreating="#onCreatingPlanAction" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                        <TaskAddingPane fx:id="_taskAddingPane" onCancelling="#onCancellingTaskAction" onCreating="#onCreatingTaskAction" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                     </children>
                 </AnchorPane>
             </children></HBox>
