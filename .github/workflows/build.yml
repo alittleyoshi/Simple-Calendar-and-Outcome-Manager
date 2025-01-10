@@ -101,7 +101,7 @@ jobs:
           ${{ runner.os }}-build-${{ env.cache-name }}-
 
     - name: flutter-install
-      run: curl -O https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_arm64_3.27.1-stable.zip && unzip ./flutter_macos_arm64_3.27.1-stable.zip -d . -q
+      run: curl -O https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_arm64_3.27.1-stable.zip && unzip ./flutter_macos_arm64_3.27.1-stable.zip -d . --quiet
     - name: build
       run: cd flutter_scom && ../flutter/bin/flutter config --no-analytics && ../flutter/bin/flutter config --no-cli-animations && ../flutter/bin/flutter pub get && ../flutter/bin/flutter build linux
     - name: bundle
