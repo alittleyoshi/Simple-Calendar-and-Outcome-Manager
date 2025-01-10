@@ -1,77 +1,9 @@
+import 'package:database/database_bindings_generated.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:ffi';
-import 'dart:io';
 import 'package:ffi/ffi.dart';
 import 'package:flutter_popup/flutter_popup.dart';
-
-DynamicLibrary _lib = Platform.isLinux ?
-  DynamicLibrary.open('database.so') :
-  DynamicLibrary.open('database.dll');
-
-final initDatabaseC = _lib
-    .lookupFunction<Int32 Function(), int Function()>
-  ('Dart_init');
-
-final queryTaskListId = _lib
-    .lookupFunction<Int32 Function(Int32 list_num), int Function(int list_num)>
-  ('Dart_query_tasklist_id');
-
-final queryTaskListNum = _lib
-    .lookupFunction<Int32 Function(), int Function()>
-  ('Dart_query_tasklist_num');
-
-final queryTaskListName = _lib
-    .lookupFunction<Pointer<Utf8> Function(Int32 listId), Pointer<Utf8> Function(int listId)>
-  ('Dart_query_tasklist_name');
-
-final queryTaskNum = _lib
-    .lookupFunction<Int32 Function(Int32 listId), int Function(int listID)>
-  ('Dart_query_task_num');
-
-final getTaskC = _lib
-    .lookupFunction<TaskC Function(Int32 listId, Int32 taskId), TaskC Function(int listId, int taskId)>
-  ('Dart_get_task');
-
-final addTaskList = _lib
-    .lookupFunction<Int32 Function(Pointer<Utf8>), int Function(Pointer<Utf8>)>
-  ('Dart_create_tasklist');
-
-final addTaskC = _lib
-    .lookupFunction<Int32 Function(Int32, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Int32), int Function(int, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, int)>
-  ('Dart_create_task');
-
-final updateStatTaskC = _lib
-    .lookupFunction<Int32 Function(Int32, Int32, Int32), int Function(int, int, int)>
-  ('Dart_update_task_stat');
-
-final updateTaskC = _lib
-    .lookupFunction<Int32 Function(Int32, Int32, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Int32), int Function(int, int, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, int)>
-  ('Dart_update_task');
-
-final deleteTaskC = _lib
-    .lookupFunction<Int32 Function(Int32, Int32), int Function(int, int)>
-  ('Dart_delete_task');
-
-final deleteTaskListC = _lib
-    .lookupFunction<Int32 Function(Int32), int Function(int)>
-  ('Dart_delete_tasklist');
-
-final testLib = _lib
-    .lookupFunction<Int32 Function(), int Function()>
-  ('Dart_test');
-
-final test1 = _lib
-    .lookupFunction<Int32 Function(), int Function()>
-  ('Dart_test_f1');
-
-final test2 = _lib
-    .lookupFunction<Void Function(), void Function()>
-  ('Dart_test_f2');
-
-final test3 = _lib
-    .lookupFunction<Int32 Function(Int32 val), int Function(int val)>
-  ('Dart_test_f3');
+import 'package:database/database.dart' as database;
 
 void main() {
   runApp(MyApp());
@@ -104,18 +36,18 @@ class MyAppState extends ChangeNotifier {
 
   void init() { // TODO free ptr trans from c
     if (!initialized) {
-      initDatabaseC();
-      var listNum = queryTaskListNum();
+      database.initDatabaseC();
+      var listNum = database.queryTaskListNum();
       print("listNum: $listNum");
       for (var i = 0; i < listNum; i++) {
         var list = TodoList();
-        list.id = queryTaskListId(i);
+        list.id = database.queryTaskListId(i);
         list.indexed = i;
-        list.name = queryTaskListName(list.id).toDartString();
-        var taskNum = queryTaskNum(list.id);
+        list.name = database.queryTaskListName(list.id).toDartString();
+        var taskNum = database.queryTaskNum(list.id);
         print("List$i, taskNum: $taskNum");
         for (var j = 0; j < taskNum; j++) {
-          var taskC = getTaskC(list.id, j);
+          var taskC = database.getTaskC(list.id, j);
           var task = changeTaskCtoTask(taskC);
           list.taskList.add(task);
         }
@@ -133,7 +65,7 @@ class MyAppState extends ChangeNotifier {
 
   void addTask(int listIndex, String title, String description, DateTime startTime, DateTime endTime, int status) {
     var newTask = Task(listIndex, 0, title, description, startTime, endTime, status);
-    var newTaskId = addTaskC(todoList[listIndex].id, newTask.title.toNativeUtf8(), newTask.description.toNativeUtf8(), newTask.startTime.toIso8601String().toNativeUtf8(), newTask.endTime.toIso8601String().toNativeUtf8(), newTask.stat);
+    var newTaskId = database.addTaskC(todoList[listIndex].id, newTask.title.toNativeUtf8(), newTask.description.toNativeUtf8(), newTask.startTime.toIso8601String().toNativeUtf8(), newTask.endTime.toIso8601String().toNativeUtf8(), newTask.stat);
     print("$newTaskId");
     print("listIndex: $listIndex, title: $title, description: $description, startTime: $startTime, endTime: $endTime, status: $status");
     newTask.id = newTaskId;
@@ -142,7 +74,7 @@ class MyAppState extends ChangeNotifier {
   }
   
   void addList(String listName) {
-    var newTaskListId = addTaskList(listName.toNativeUtf8());
+    var newTaskListId = database.addTaskList(listName.toNativeUtf8());
     var newList = TodoList();
     newList.id = newTaskListId;
     newList.indexed = todoList.length;
@@ -153,17 +85,17 @@ class MyAppState extends ChangeNotifier {
 
   void updateTaskStatus(int listIndex, int taskId, int status) {
     print("update list$listIndex task$taskId stat:$status");
-    updateStatTaskC(todoList[listIndex].id, taskId, status);
+    database.updateStatTaskC(todoList[listIndex].id, taskId, status);
     // todoList[listIndex].taskList[taskIndex].stat = status;
     notifyListeners();
   }
 
   void deleteTask(int listIndex, int taskId, Task task) {
-    deleteTaskC(todoList[listIndex].id, taskId);
+    database.deleteTaskC(todoList[listIndex].id, taskId);
     todoList[listIndex].taskList.remove(task);
 
     // update list indexed
-    var listNum = queryTaskListNum();
+    var listNum = database.queryTaskListNum();
     for (var i = 0; i < listNum; i++) {
       todoList[i].indexed = i;
     }
@@ -175,7 +107,7 @@ class MyAppState extends ChangeNotifier {
     // todoList[listIndex].taskList[taskIndex] = task;
     todoList[listIndex].taskList.remove(oldTask);
     todoList[listIndex].taskList.add(task);
-    updateTaskC(
+    database.updateTaskC(
       todoList[listIndex].id,
       taskId,
       task.title.toNativeUtf8(),
@@ -189,7 +121,7 @@ class MyAppState extends ChangeNotifier {
   }
 
   void deleteTaskList(int listIndex) {
-    deleteTaskListC(todoList[listIndex].id);
+    database.deleteTaskListC(todoList[listIndex].id);
     todoList.removeAt(listIndex);
     afterDelete = true;
     notifyListeners();
@@ -278,15 +210,15 @@ class TodoPage extends StatefulWidget {
   State<TodoPage> createState() => _TodoPageState();
 }
 
-final class TaskC extends Struct {
-  @Int32()
-  external int listId, id;
-
-  external Pointer<Utf8> title, description, startTime, endTime;
-
-  @Int32()
-  external int status;
-}
+// final class TaskC extends Struct {
+//   @Int32()
+//   external int listId, id;
+//
+//   external Pointer<Utf8> title, description, startTime, endTime;
+//
+//   @Int32()
+//   external int status;
+// }
 
 class Task {
   var listId = 0;
@@ -300,8 +232,8 @@ class Task {
   Task(this.listId, this.id, this.title, this.description, this.startTime, this.endTime, this.stat);
 }
 
-Task changeTaskCtoTask(TaskC task) {
-  return Task(task.listId, task.id, task.title.toDartString(), task.description.toDartString(), DateTime.parse(task.startTime.toDartString()), DateTime.parse(task.endTime.toDartString()), task.status);
+Task changeTaskCtoTask(Dart_Task task) {
+  return Task(task.list_id, task.id, task.title.toDartString(), task.description.toDartString(), DateTime.parse(task.startDate.toDartString()), DateTime.parse(task.endDate.toDartString()), task.status);
 }
 
 int getTodoListNum() {
@@ -507,7 +439,7 @@ class _TodoPageState extends State<TodoPage> {
   var selectedIndex = 0;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) { // TODO deal with none todo list
     var appState = context.watch<MyAppState>();
     appState.init();
 
