@@ -1,12 +1,10 @@
-﻿#include "database.h"
+#include "database.h"
 #include <chrono>
 #include <cstring>
 #include <iomanip>
 #include <iostream>
 #include <string>
 #include "sqlite3.h"
-
-#define DART_API extern "C" __attribute__((visibility("default"))) __attribute__((used))
 
 std::string timestampToString(const time_t timestamp) {
     const std::tm* tm = std::localtime(&timestamp);
