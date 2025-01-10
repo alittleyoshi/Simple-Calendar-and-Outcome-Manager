@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <iostream>
 #include <string>
+#include <sstream> // for macos
 #include "sqlite3.h"
 
 std::string timestampToString(const time_t timestamp) {
