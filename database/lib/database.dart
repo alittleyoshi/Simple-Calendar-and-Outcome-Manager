@@ -15,8 +15,8 @@ import 'database_bindings_generated.dart';
 
 final _bindings = DatabaseBindings(Platform.isLinux ?
     DynamicLibrary.open('libdatabase.so') : Platform.isMacOS ?
-    DynamicLibrary.open('libdatabase.dylib') :
-    DynamicLibrary.open('libdatabase.dll'));
+    DynamicLibrary.open('database.framework') :
+    DynamicLibrary.open('database.dll'));
 
 final initDatabaseC = _bindings.Dart_init;
 
