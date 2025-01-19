@@ -208,6 +208,24 @@ class DatabaseBindings {
   late final _Dart_update_task_stat =
       _Dart_update_task_statPtr.asFunction<int Function(int, int, int)>();
 
+  int Dart_move_task(
+    int list_id,
+    int task_id,
+    int to_list_id,
+  ) {
+    return _Dart_move_task(
+      list_id,
+      task_id,
+      to_list_id,
+    );
+  }
+
+  late final _Dart_move_taskPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function(ffi.Int, ffi.Int, ffi.Int)>>(
+          'Dart_move_task');
+  late final _Dart_move_task =
+      _Dart_move_taskPtr.asFunction<int Function(int, int, int)>();
+
   int Dart_delete_task(
     int list_id,
     int task_id,

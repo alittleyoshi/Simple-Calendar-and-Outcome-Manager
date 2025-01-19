@@ -710,6 +710,11 @@ int Dart_update_task_stat(int list_id, int task_id, int stat) {
     return 0;
 }
 
+int Dart_move_task(int list_id, int task_id, int to_list_id) {
+    db->move_task_by_id(list_id, to_list_id, task_id);
+    return 0;
+}
+
 int Dart_delete_task(int list_id, int task_id) {
     db->delete_task_by_id(list_id, task_id);
     return 0;

@@ -31,6 +31,7 @@ FFI_PLUGIN_EXPORT int Dart_update_task(int list_id, int task_id, const char* tit
                     const char* description, const char* startDate,
                     const char* endDate, int status);
 FFI_PLUGIN_EXPORT int Dart_update_task_stat(int list_id, int task_id, int stat);
+FFI_PLUGIN_EXPORT int Dart_move_task(int list_id, int task_id, int to_list_id);
 FFI_PLUGIN_EXPORT int Dart_delete_task(int list_id, int task_id);
 FFI_PLUGIN_EXPORT int Dart_delete_tasklist(int list_id);
 
