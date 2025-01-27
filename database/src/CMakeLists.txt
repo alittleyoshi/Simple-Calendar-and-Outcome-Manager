@@ -27,13 +27,16 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 add_library(sqlite3 STATIC sqlite3.c)
 
+add_library(easylogging STATIC easylogging++.cc)
+
 target_link_libraries(database PRIVATE sqlite3)
+target_link_libraries(database PRIVATE easylogging)
 
 target_compile_definitions(database PUBLIC DART_SHARED_LIB)
 
 if (TEST)
     add_compile_definitions(TEST)
     add_executable(SCOM_database_TEST test/test.cpp)
-    target_link_libraries(SCOM_database_TEST PRIVATE SCOM_database)
+    target_link_libraries(SCOM_database_TEST PRIVATE database)
     target_include_directories(SCOM_database_TEST PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 endif ()
