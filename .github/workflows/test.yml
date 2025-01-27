@@ -16,4 +16,4 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Test
-      run: cd database && mkdir cmake-build-debug && cmake -S . -B ./cmake-build-test -DTEST=true && cmake --build ./cmake-build-test --target SCOM_database_test -j 4
+      run: cd database/src && mkdir cmake-build-debug && cmake -S . -B ./cmake-build-test -DTEST=true && cmake --build ./cmake-build-test --target SCOM_database_test -j 4
