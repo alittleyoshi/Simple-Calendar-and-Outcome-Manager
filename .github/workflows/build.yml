@@ -24,7 +24,7 @@ jobs:
           ./flutter_scom/build/
           ./flutter_scom/.dart_tool/
           ~/.pub-cache/
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./flutter_scom/lib/main.dart') }}
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./flutter_scom/pubspec.lock') }}
         restore-keys: |
           ${{ runner.os }}-build-${{ env.cache-name }}-
 
@@ -34,20 +34,12 @@ jobs:
       with:
         packages: curl git unzip xz-utils zip libglu1-mesa clang cmake git ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
         version: 1.0
-    - name: flutter-download
-      run: curl -O https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.27.0-stable.tar.xz
     - name: flutter-install
-      run: tar -xf ./flutter_linux_3.27.0-stable.tar.xz -C .
-    - name: cmake-download
-      run: curl -OJL https://github.com/Kitware/CMake/releases/download/v3.31.2/cmake-3.31.2-linux-x86_64.tar.gz
-    - name: cmake-install
-      run: tar -xf ./cmake-3.31.2-linux-x86_64.tar.gz -C .
-    - name: build-flutter-scom
+      run: curl -O https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.27.0-stable.tar.xz && tar -xf ./flutter_linux_3.27.0-stable.tar.xz -C .
+    - name: build
       run: cd flutter_scom && ../flutter/bin/flutter config --no-analytics && ../flutter/bin/flutter config --no-cli-animations && ../flutter/bin/flutter pub get && ../flutter/bin/flutter build linux
-    - name: build-database
-      run: cd database && mkdir cmake-build-debug && ../cmake-3.31.2-linux-x86_64/bin/cmake -S . -B ./cmake-build-debug && ../cmake-3.31.2-linux-x86_64/bin/cmake --build ./cmake-build-debug --target SCOM_database
     - name: bundle
-      run: cp ./database/cmake-build-debug/libSCOM_database.so ./flutter_scom/build/linux/x64/release/bundle/lib/database.so && tar -zcvf ./linux-release.tar.gz ./flutter_scom/build/linux/x64/release/bundle/
+      run: tar -zcvf ./linux-release.tar.gz ./flutter_scom/build/linux/x64/release/bundle/
 
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v4.4.3
@@ -71,27 +63,52 @@ jobs:
           ./flutter_scom/build/
           ./flutter_scom/.dart_tool/
           ~/.pub-cache/
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./flutter_scom/lib/main.dart') }}
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./flutter_scom/pubspec.lock') }}
         restore-keys: |
           ${{ runner.os }}-build-${{ env.cache-name }}-
 
-    - name: flutter-download
-      run: curl -O https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/flutter_windows_3.27.0-stable.zip
     - name: flutter-install
-      run: Expand-Archive –Path .\flutter_windows_3.27.0-stable.zip -Destination .
-    - name: cmake-download
-      run: curl -OJL https://github.com/Kitware/CMake/releases/download/v3.31.2/cmake-3.31.2-windows-x86_64.zip
-    - name: cmake-install
-      run: Expand-Archive –Path .\cmake-3.31.2-windows-x86_64.zip -Destination .
+      run: curl -O https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/flutter_windows_3.27.0-stable.zip && Expand-Archive –Path .\flutter_windows_3.27.0-stable.zip -Destination .
     - name: build-flutter-scom
       run: cd flutter_scom && ../flutter/bin/flutter config --no-analytics && ../flutter/bin/flutter config --no-cli-animations && ../flutter/bin/flutter pub get && ../flutter/bin/flutter build windows
-    - name: build-database
-      run: cd database && mkdir cmake-build-debug && ../cmake-3.31.2-windows-x86_64/bin/cmake -S . -B ./cmake-build-debug && ../cmake-3.31.2-windows-x86_64/bin/cmake --build ./cmake-build-debug --target SCOM_database
     - name: bundle
-      run: Copy-Item -Path ./database/cmake-build-debug/Debug/SCOM_database.dll -Destination ./flutter_scom/build/windows/x64/runner/Release/database.dll -Force && Compress-Archive -Path ./flutter_scom/build/windows/x64/runner/Release/ -DestinationPath ./windows-release.zip
+      run: Compress-Archive -Path ./flutter_scom/build/windows/x64/runner/Release/ -DestinationPath ./windows-release.zip
 
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v4.4.3
       with:
         name: windows-release
         path: windows-release.zip
+
+  build-on-macos:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Cache
+      uses: actions/cache@v4.2.0
+      env:
+        cache-name: cache-flutter
+      with:
+        path: |
+          ./flutter_scom/build/
+          ./flutter_scom/.dart_tool/
+          ~/.pub-cache/
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./flutter_scom/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+
+    - name: flutter-install
+      run: curl -O https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_arm64_3.27.1-stable.zip && unzip ./flutter_macos_arm64_3.27.1-stable.zip -d . # TODO: how to make it quiet
+    - name: build
+      run: cd flutter_scom && ../flutter/bin/flutter config --no-analytics && ../flutter/bin/flutter config --no-cli-animations && ../flutter/bin/flutter pub get && ../flutter/bin/flutter build macos
+    - name: bundle
+      run: tar -zcvf ./macos-release.tar.gz ./flutter_scom/build/macos/Build/Products/Release/flutter_scom.app
+
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v4.4.3
+      with:
+        name: macos-release
+        path: macos-release.tar.gz
