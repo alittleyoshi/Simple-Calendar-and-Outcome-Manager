@@ -20,4 +20,4 @@ jobs:
       run: cd database/src && mkdir cmake-build-test && cmake -S . -B ./cmake-build-test -DTEST=true && cmake --build ./cmake-build-test --target SCOM_database_TEST -j 4
 
     - name: Test
-      run: cd database/src/cmake-build-test && SCOM_database_TEST
+      run: cd database/src/cmake-build-test && ./SCOM_database_TEST
