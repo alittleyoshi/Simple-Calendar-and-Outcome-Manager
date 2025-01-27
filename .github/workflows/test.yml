@@ -1,0 +1,19 @@
+name: Building
+
+on:
+  push:
+    branches:
+    - database-develop
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  build-on-linux:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: test
+      run: cd database && && mkdir cmake-build-debug && cmake -S . -B ./cmake-build-test -DTEST=true && cmake --build ./cmake-build-test --target SCOM_database_test -j 4
