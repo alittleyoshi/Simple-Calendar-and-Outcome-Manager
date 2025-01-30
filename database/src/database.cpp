@@ -12,7 +12,7 @@
 
 INITIALIZE_EASYLOGGINGPP
 
-using std::format, std::stoi;
+using std::stoi;
 using Task = Database::Task;
 using TaskList = Database::TaskList;
 
@@ -91,6 +91,8 @@ Database::~Database() {
 #include "database_macos.cpp"
 
 #else
+
+using std::format;
 
 int Database::new_task_list(TaskList*& task_list) {
     int code = run_sql_cmd(std::format("UPDATE META SET VALUE = '{}' WHERE NAME = 'LIST_ID';", task_list_id + 1).c_str(), nullptr, nullptr);
