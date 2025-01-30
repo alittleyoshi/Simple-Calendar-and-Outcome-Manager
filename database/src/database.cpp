@@ -12,7 +12,7 @@
 
 INITIALIZE_EASYLOGGINGPP
 
-using std::format, std::stoi;
+using std::stoi;
 using Task = Database::Task;
 using TaskList = Database::TaskList;
 
@@ -85,6 +85,14 @@ Database::Database(const string& file_path) {
 Database::~Database() {
     sqlite3_close(database);
 }
+
+#ifdef MACOS
+
+#include "database_macos.cpp"
+
+#else
+
+using std::format;
 
 int Database::new_task_list(TaskList*& task_list) {
     int code = run_sql_cmd(std::format("UPDATE META SET VALUE = '{}' WHERE NAME = 'LIST_ID';", task_list_id + 1).c_str(), nullptr, nullptr);
@@ -210,6 +218,8 @@ int Database::query_all_task(vector<Task>& tasks) {
 int Database::update_task(const Task& task) {
     return run_sql_cmd(format("UPDATE TASKS SET BELONG = {}, TITLE = '{}', DESCRIPTION = '{}', START_TIME = {}, END_TIME = {}, STATUS = {} WHERE ID = '{}';", task.belong, task.title, task.description, task.start_time, task.end_time, task.status, task.id).c_str(), nullptr, nullptr);
 }
+
+#endif
 
 string Utility::time_to_string(const time_t time) {
     const std::tm* tm = std::localtime(&time);
