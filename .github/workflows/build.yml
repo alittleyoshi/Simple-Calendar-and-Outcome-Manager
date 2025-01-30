@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - flutter
+    - flutter-develop
   workflow_dispatch:
   workflow_call:
 

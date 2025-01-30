@@ -6,60 +6,93 @@
 #define DATABASE_H
 
 #include <string>
+#include <vector>
+
 #include "sqlite3.h"
 extern "C" {
 #include "flutter_database.h"
 }
 
-struct Task {
-    int list_id;
-    int id;
-    std::string title;
-    std::string description;
-    std::string startDate;
-    std::string endDate;
-    int status;
+using uint = unsigned int;
+using std::string, std::vector;
 
-    void output() const;
-};
+class Database{
+    sqlite3 *database;
 
-class DatabaseManager {
+    uint task_list_id;
+    uint task_list_num;
+    uint task_id;
+    uint task_num;
+
+    int run_sql_cmd(const char* sql_cmd, int (*)(void*, int, char**, char**), void*);
+
 public:
-    explicit DatabaseManager(const std::string& dbName);
-    ~DatabaseManager();
+    class Task {
+        const uint id;
+        bool fresh;
 
-    int add_tasklist(const std::string& list_name);
-    int get_tasklist_cur_id() const;
-    int insert_task(int cur_tasklist, const std::string& title, const std::string& description, long long startTime,
-                    long long endTime, int stat) const;
-    int query_tasklist_id_by_num(int list_num) const;
-    int query_tasks_num(int cur_tasklist) const;
-    int delete_task_by_id(int cur_tasklist, int id) const;
-    int delete_tasklist_by_id(int tasklist_id);
-    int query_task_by_num(int cur_tasklist, int task_num, Task* task) const;
-    int update_task(int cur_tasklist, int id, const std::string& title, const std::string& description,
-                   long long startTime, long long endTime, int stat) const;
-    [[deprecated]] bool updateTaskTitle(int cur_tasklist, int id, const std::string& title) const;
-    [[deprecated]] bool updateTaskStatus(int cur_tasklist, int id, int stat) const;
-    int query_task_by_id(int list_id, int task_id, Task* task) const;
-    std::string query_tasklist_name_by_id(int id) const;
-    int init_task_list_table() const;
-    int after_init() ;
-    [[deprecated]] bool queryTaskLists() const;
-    int query_task_lists_num() const;
-    int query_task_id_from_list(int list_id) const;
-    int move_task_by_id(int cur_tasklist, int to_tasklist, int task_id) const;
+        friend Database;
 
-private:
-    sqlite3* db;
+        explicit Task(const uint id) : id(id), fresh(false), belong(0), start_time(0), end_time(0), status(0) {}
 
-    int tasklist_num;
-    int tasklist_id;
+    public:
+        Task(const Task& task) : id(task.id), fresh(false), belong(task.belong), title(task.title), description(task.description), start_time(task.start_time), end_time(task.end_time), status(task.status) {}
+
+        uint belong;
+        string title;
+        string description;
+        long long start_time;
+        long long end_time;
+        int status;
+
+        [[nodiscard]] uint get_id() const {
+            return id;
+        }
+    };
+
+    class TaskList {
+        const uint id;
+        bool fresh;
+        friend Database;
+
+        explicit TaskList(const uint id) : id(id), fresh(false) {}
+
+    public:
+        TaskList(const TaskList& task_list) : id(task_list.id), fresh(false), title(task_list.title) {}
+
+        string title;
+
+        [[nodiscard]] uint get_id() const {
+            return id;
+        }
+    };
+
+    explicit Database(const string& file_path);
+    ~Database();
+
+    int new_task_list(TaskList*& task_list);
+    int new_task(Task*& task);
+
+    int add_task_list(TaskList* list);
+    int delete_task_list(uint id);
+    int query_task_list_num(uint&) const;
+    int query_task_list(uint id, TaskList*&);
+    int query_all_task_list(vector<TaskList>&);
+    int update_task_list(const TaskList& task_list);
+    int add_task(Task* task);
+    int delete_task(uint id);
+    int query_task_num(uint&) const;
+    int query_task(uint id, Task*&);
+    int query_all_task(vector<Task>&);
+    int update_task(const Task& task);
+
 };
 
-// Utility functions
-std::string timestampToString(time_t timestamp);
-time_t string_to_timestamp(const std::string& timestamp);
-Dart_Task covert_task_dart_task(const Task& task);
+namespace Utility {
+    string time_to_string(time_t time);
+    long long string_to_time(const std::string& time);
+    Dart_Task task_to_dart_task(const Database::Task&);
+    Dart_TaskList list_to_dart_task_list(const Database::TaskList&);
+};
 
 #endif //DATABASE_H

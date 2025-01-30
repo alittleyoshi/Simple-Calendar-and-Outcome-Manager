@@ -17,22 +17,33 @@ FFI_PLUGIN_EXPORT struct Dart_Task {
     int status;
 };
 
+FFI_PLUGIN_EXPORT struct Dart_TaskList {
+    int id;
+    char* title;
+};
+
 // Dart API functions
 FFI_PLUGIN_EXPORT int Dart_init();
-FFI_PLUGIN_EXPORT int Dart_query_tasklist_num();
-FFI_PLUGIN_EXPORT int Dart_query_tasklist_id(int num);
-FFI_PLUGIN_EXPORT char* Dart_query_tasklist_name(int id);
-FFI_PLUGIN_EXPORT int Dart_query_task_num(int task_num);
-FFI_PLUGIN_EXPORT struct Dart_Task Dart_get_task(int list_num, int task_num);
+FFI_PLUGIN_EXPORT int Dart_get_list_pre();
+FFI_PLUGIN_EXPORT int Dart_get_task_pre();
+FFI_PLUGIN_EXPORT struct Dart_TaskList Dart_get_list();
+FFI_PLUGIN_EXPORT struct Dart_Task Dart_get_task();
 FFI_PLUGIN_EXPORT int Dart_create_tasklist(const char* list_name);
-FFI_PLUGIN_EXPORT int Dart_create_task(int list_num, const char* title, const char* description,
+FFI_PLUGIN_EXPORT int Dart_create_task(int list_id, const char* title, const char* description,
                     const char* startDate, const char* endDate, int status);
 FFI_PLUGIN_EXPORT int Dart_update_task(int list_id, int task_id, const char* title,
                     const char* description, const char* startDate,
                     const char* endDate, int status);
-FFI_PLUGIN_EXPORT int Dart_update_task_stat(int list_id, int task_id, int stat);
-FFI_PLUGIN_EXPORT int Dart_delete_task(int list_id, int task_id);
+FFI_PLUGIN_EXPORT int Dart_update_tasklist(int list_id, const char* title);
+FFI_PLUGIN_EXPORT int Dart_delete_task(int task_id);
 FFI_PLUGIN_EXPORT int Dart_delete_tasklist(int list_id);
 
+[[deprecated]] FFI_PLUGIN_EXPORT int Dart_query_tasklist_num();
+[[deprecated]] FFI_PLUGIN_EXPORT int Dart_query_tasklist_id(int num);
+[[deprecated]] FFI_PLUGIN_EXPORT char* Dart_query_tasklist_name(int id);
+[[deprecated]] FFI_PLUGIN_EXPORT int Dart_query_task_num(int task_num); // why the name was
+// [[deprecated]] FFI_PLUGIN_EXPORT struct Dart_Task Dart_get_task(int list_num, int task_num);
+[[deprecated]] FFI_PLUGIN_EXPORT int Dart_update_task_stat(int list_id, int task_id, int stat);
+[[deprecated]] FFI_PLUGIN_EXPORT int Dart_move_task(int list_id, int task_id, int to_list_id);
 
 #endif

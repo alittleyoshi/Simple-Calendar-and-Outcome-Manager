@@ -37,73 +37,41 @@ class DatabaseBindings {
       _lookup<ffi.NativeFunction<ffi.Int Function()>>('Dart_init');
   late final _Dart_init = _Dart_initPtr.asFunction<int Function()>();
 
-  int Dart_query_tasklist_num() {
-    return _Dart_query_tasklist_num();
+  int Dart_get_list_pre() {
+    return _Dart_get_list_pre();
   }
 
-  late final _Dart_query_tasklist_numPtr =
-      _lookup<ffi.NativeFunction<ffi.Int Function()>>(
-          'Dart_query_tasklist_num');
-  late final _Dart_query_tasklist_num =
-      _Dart_query_tasklist_numPtr.asFunction<int Function()>();
+  late final _Dart_get_list_prePtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function()>>('Dart_get_list_pre');
+  late final _Dart_get_list_pre =
+      _Dart_get_list_prePtr.asFunction<int Function()>();
 
-  int Dart_query_tasklist_id(
-    int num,
-  ) {
-    return _Dart_query_tasklist_id(
-      num,
-    );
+  int Dart_get_task_pre() {
+    return _Dart_get_task_pre();
   }
 
-  late final _Dart_query_tasklist_idPtr =
-      _lookup<ffi.NativeFunction<ffi.Int Function(ffi.Int)>>(
-          'Dart_query_tasklist_id');
-  late final _Dart_query_tasklist_id =
-      _Dart_query_tasklist_idPtr.asFunction<int Function(int)>();
+  late final _Dart_get_task_prePtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function()>>('Dart_get_task_pre');
+  late final _Dart_get_task_pre =
+      _Dart_get_task_prePtr.asFunction<int Function()>();
 
-  ffi.Pointer<pkg_ffi.Utf8> Dart_query_tasklist_name(
-    int id,
-  ) {
-    return _Dart_query_tasklist_name(
-      id,
-    );
+  Dart_TaskList Dart_get_list() {
+    return _Dart_get_list();
   }
 
-  late final _Dart_query_tasklist_namePtr =
-      _lookup<ffi.NativeFunction<ffi.Pointer<pkg_ffi.Utf8> Function(ffi.Int)>>(
-          'Dart_query_tasklist_name');
-  late final _Dart_query_tasklist_name = _Dart_query_tasklist_namePtr
-      .asFunction<ffi.Pointer<pkg_ffi.Utf8> Function(int)>();
+  late final _Dart_get_listPtr =
+      _lookup<ffi.NativeFunction<Dart_TaskList Function()>>('Dart_get_list');
+  late final _Dart_get_list =
+      _Dart_get_listPtr.asFunction<Dart_TaskList Function()>();
 
-  int Dart_query_task_num(
-    int task_num,
-  ) {
-    return _Dart_query_task_num(
-      task_num,
-    );
-  }
-
-  late final _Dart_query_task_numPtr =
-      _lookup<ffi.NativeFunction<ffi.Int Function(ffi.Int)>>(
-          'Dart_query_task_num');
-  late final _Dart_query_task_num =
-      _Dart_query_task_numPtr.asFunction<int Function(int)>();
-
-  Dart_Task Dart_get_task(
-    int list_num,
-    int task_num,
-  ) {
-    return _Dart_get_task(
-      list_num,
-      task_num,
-    );
+  Dart_Task Dart_get_task() {
+    return _Dart_get_task();
   }
 
   late final _Dart_get_taskPtr =
-      _lookup<ffi.NativeFunction<Dart_Task Function(ffi.Int, ffi.Int)>>(
-          'Dart_get_task');
+      _lookup<ffi.NativeFunction<Dart_Task Function()>>('Dart_get_task');
   late final _Dart_get_task =
-      _Dart_get_taskPtr.asFunction<Dart_Task Function(int, int)>();
+      _Dart_get_taskPtr.asFunction<Dart_Task Function()>();
 
   int Dart_create_tasklist(
     ffi.Pointer<pkg_ffi.Utf8> list_name,
@@ -120,7 +88,7 @@ class DatabaseBindings {
       int Function(ffi.Pointer<pkg_ffi.Utf8>)>();
 
   int Dart_create_task(
-    int list_num,
+    int list_id,
     ffi.Pointer<pkg_ffi.Utf8> title,
     ffi.Pointer<pkg_ffi.Utf8> description,
     ffi.Pointer<pkg_ffi.Utf8> startDate,
@@ -128,7 +96,7 @@ class DatabaseBindings {
     int status,
   ) {
     return _Dart_create_task(
-      list_num,
+      list_id,
       title,
       description,
       startDate,
@@ -190,6 +158,104 @@ class DatabaseBindings {
           ffi.Pointer<pkg_ffi.Utf8>,
           int)>();
 
+  int Dart_update_tasklist(
+    int list_id,
+    ffi.Pointer<pkg_ffi.Utf8> title,
+  ) {
+    return _Dart_update_tasklist(
+      list_id,
+      title,
+    );
+  }
+
+  late final _Dart_update_tasklistPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int Function(
+              ffi.Int, ffi.Pointer<pkg_ffi.Utf8>)>>('Dart_update_tasklist');
+  late final _Dart_update_tasklist = _Dart_update_tasklistPtr.asFunction<
+      int Function(int, ffi.Pointer<pkg_ffi.Utf8>)>();
+
+  int Dart_delete_task(
+    int task_id,
+  ) {
+    return _Dart_delete_task(
+      task_id,
+    );
+  }
+
+  late final _Dart_delete_taskPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function(ffi.Int)>>(
+          'Dart_delete_task');
+  late final _Dart_delete_task =
+      _Dart_delete_taskPtr.asFunction<int Function(int)>();
+
+  int Dart_delete_tasklist(
+    int list_id,
+  ) {
+    return _Dart_delete_tasklist(
+      list_id,
+    );
+  }
+
+  late final _Dart_delete_tasklistPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function(ffi.Int)>>(
+          'Dart_delete_tasklist');
+  late final _Dart_delete_tasklist =
+      _Dart_delete_tasklistPtr.asFunction<int Function(int)>();
+
+  int Dart_query_tasklist_num() {
+    return _Dart_query_tasklist_num();
+  }
+
+  late final _Dart_query_tasklist_numPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function()>>(
+          'Dart_query_tasklist_num');
+  late final _Dart_query_tasklist_num =
+      _Dart_query_tasklist_numPtr.asFunction<int Function()>();
+
+  int Dart_query_tasklist_id(
+    int num,
+  ) {
+    return _Dart_query_tasklist_id(
+      num,
+    );
+  }
+
+  late final _Dart_query_tasklist_idPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function(ffi.Int)>>(
+          'Dart_query_tasklist_id');
+  late final _Dart_query_tasklist_id =
+      _Dart_query_tasklist_idPtr.asFunction<int Function(int)>();
+
+  ffi.Pointer<pkg_ffi.Utf8> Dart_query_tasklist_name(
+    int id,
+  ) {
+    return _Dart_query_tasklist_name(
+      id,
+    );
+  }
+
+  late final _Dart_query_tasklist_namePtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<pkg_ffi.Utf8> Function(ffi.Int)>>(
+          'Dart_query_tasklist_name');
+  late final _Dart_query_tasklist_name = _Dart_query_tasklist_namePtr
+      .asFunction<ffi.Pointer<pkg_ffi.Utf8> Function(int)>();
+
+  int Dart_query_task_num(
+    int task_num,
+  ) {
+    return _Dart_query_task_num(
+      task_num,
+    );
+  }
+
+  late final _Dart_query_task_numPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function(ffi.Int)>>(
+          'Dart_query_task_num');
+  late final _Dart_query_task_num =
+      _Dart_query_task_numPtr.asFunction<int Function(int)>();
+
+  /// [[deprecated]] FFI_PLUGIN_EXPORT struct Dart_Task Dart_get_task(int list_num, int task_num);
   int Dart_update_task_stat(
     int list_id,
     int task_id,
@@ -208,35 +274,23 @@ class DatabaseBindings {
   late final _Dart_update_task_stat =
       _Dart_update_task_statPtr.asFunction<int Function(int, int, int)>();
 
-  int Dart_delete_task(
+  int Dart_move_task(
     int list_id,
     int task_id,
+    int to_list_id,
   ) {
-    return _Dart_delete_task(
+    return _Dart_move_task(
       list_id,
       task_id,
+      to_list_id,
     );
   }
 
-  late final _Dart_delete_taskPtr =
-      _lookup<ffi.NativeFunction<ffi.Int Function(ffi.Int, ffi.Int)>>(
-          'Dart_delete_task');
-  late final _Dart_delete_task =
-      _Dart_delete_taskPtr.asFunction<int Function(int, int)>();
-
-  int Dart_delete_tasklist(
-    int list_id,
-  ) {
-    return _Dart_delete_tasklist(
-      list_id,
-    );
-  }
-
-  late final _Dart_delete_tasklistPtr =
-      _lookup<ffi.NativeFunction<ffi.Int Function(ffi.Int)>>(
-          'Dart_delete_tasklist');
-  late final _Dart_delete_tasklist =
-      _Dart_delete_tasklistPtr.asFunction<int Function(int)>();
+  late final _Dart_move_taskPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function(ffi.Int, ffi.Int, ffi.Int)>>(
+          'Dart_move_task');
+  late final _Dart_move_task =
+      _Dart_move_taskPtr.asFunction<int Function(int, int, int)>();
 }
 
 final class Dart_Task extends ffi.Struct {
@@ -256,4 +310,11 @@ final class Dart_Task extends ffi.Struct {
 
   @ffi.Int()
   external int status;
+}
+
+final class Dart_TaskList extends ffi.Struct {
+  @ffi.Int()
+  external int id;
+
+  external ffi.Pointer<pkg_ffi.Utf8> title;
 }
