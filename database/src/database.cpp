@@ -290,7 +290,7 @@ int Dart_get_list_pre() {
 
 int Dart_get_task_pre() {
     if (inited && !task_pre) {
-        db->query_task_list_num(task_num);
+        db->query_task_num(task_num);
         db->query_all_task(tasks);
         task_cnt = 0;
         task_pre = true;
@@ -303,8 +303,7 @@ int Dart_get_task_pre() {
 
 Dart_TaskList Dart_get_list() {
     if (list_pre && list_cnt < list_num) {
-        list_cnt++;
-        return list_to_dart_task_list(lists[list_cnt - 1]);
+        return list_to_dart_task_list(lists[list_cnt++]);
     }
     LOG(ERROR) << "No preloaded or already finished." << std::endl;
     return Dart_TaskList{};
@@ -312,59 +311,78 @@ Dart_TaskList Dart_get_list() {
 
 Dart_Task Dart_get_task() {
     if (task_pre && task_cnt < task_num) {
-        task_cnt++;
-        return task_to_dart_task(tasks[task_cnt - 1]);
+        return task_to_dart_task(tasks[task_cnt++]);
     }
     LOG(ERROR) << "No preloaded or already finished." << std::endl;
     return Dart_Task{};
 }
 
 int Dart_create_tasklist(const char* list_name) {
-    TaskList *list;
-    db->new_task_list(list);
-    list->title = list_name;
-    int id = static_cast<int>(list->get_id());
-    db->add_task_list(list);
-    return id;
+    if (inited) {
+        TaskList *list;
+        db->new_task_list(list);
+        list->title = list_name;
+        int id = static_cast<int>(list->get_id());
+        db->add_task_list(list);
+        return id;
+    }
+    LOG(ERROR) << "No inited." << std::endl;
+    return -1;
 }
 
 int Dart_create_task(int list_id, const char* title, const char* description, const char* startDate,
                               const char* endDate, int status) {
-    Task *task;
-    db->new_task(task);
-    task->belong = list_id,
-    task->title = title,
-    task->description = description,
-    task->start_time = string_to_time(startDate),
-    task->end_time = string_to_time(endDate),
-    task->status = status;
-    int id = static_cast<int>(task->get_id());
-    db->add_task(task);
-    return id;
+    if (inited) {
+        Task *task;
+        db->new_task(task);
+        task->belong = list_id,
+        task->title = title,
+        task->description = description,
+        task->start_time = string_to_time(startDate),
+        task->end_time = string_to_time(endDate),
+        task->status = status;
+        int id = static_cast<int>(task->get_id());
+        db->add_task(task);
+        return id;
+    }
+    LOG(ERROR) << "No inited." << std::endl;
+    return -1;
 }
 
 int Dart_update_task(int list_id, int task_id, const char* title, const char* description,
                               const char* startDate, const char* endDate, int status) {
-    Task *task;
-    db->query_task(task_id, task);
-    task->belong = list_id,
-    task->title = title,
-    task->description = description,
-    task->start_time = string_to_time(startDate),
-    task->end_time = string_to_time(endDate),
-    task->status = status;
-    db->update_task(*task);
-    return 0;
+    if (inited) {
+        Task *task;
+        db->query_task(task_id, task);
+        task->belong = list_id,
+        task->title = title,
+        task->description = description,
+        task->start_time = string_to_time(startDate),
+        task->end_time = string_to_time(endDate),
+        task->status = status;
+        db->update_task(*task);
+        return 0;
+    }
+    LOG(ERROR) << "No inited." << std::endl;
+    return -1;
 }
 
 int Dart_delete_task(int task_id) {
-    db->delete_task(task_id);
-    return 0;
+    if (inited) {
+        db->delete_task(task_id);
+        return 0;
+    }
+    LOG(ERROR) << "No inited." << std::endl;
+    return -1;
 }
 
 int Dart_delete_tasklist(int list_id) {
-    db->delete_task_list(list_id);
-    return 0;
+    if(inited) {
+        db->delete_task_list(list_id);
+        return 0;
+    }
+    LOG(ERROR) << "No inited." << std::endl;
+    return -1;
 }
 
 int Dart_query_tasklist_num() {

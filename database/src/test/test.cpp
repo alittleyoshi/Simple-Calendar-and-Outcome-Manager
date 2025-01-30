@@ -213,6 +213,9 @@ TEST_SUITE("Dart API Test") {
             db.new_task_list(list);
             fill_list(list);
             db.add_task_list(list);
+            db.new_task_list(list);
+            fill_list(list);
+            db.add_task_list(list);
 
             Database::Task *task;
             db.new_task(task);
@@ -229,6 +232,9 @@ TEST_SUITE("Dart API Test") {
         auto list_num = Dart_get_list_pre();
         auto task_num = Dart_get_task_pre();
 
+        REQUIRE(list_num == 3);
+        REQUIRE(task_num == 2);
+
         vector<Dart_TaskList> lists;
         lists.reserve(list_num);
         for (int i = 0; i < list_num; i++) {
@@ -241,8 +247,6 @@ TEST_SUITE("Dart API Test") {
             tasks.emplace_back(Dart_get_task());
         }
 
-        REQUIRE(list_num == 2);
-        REQUIRE(task_num == 2);
         CHECK(string(lists[0].title) == "Test List");
         CHECK(string(lists[1].title) == "Test List");
         CHECK(string(tasks[0].title) == "Test Task");
