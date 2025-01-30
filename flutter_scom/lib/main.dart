@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:database/database_bindings_generated.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -5,7 +6,28 @@ import 'package:ffi/ffi.dart';
 import 'package:flutter_popup/flutter_popup.dart';
 import 'package:database/database.dart' as database;
 
+class Task {
+  var listId = 0;
+  var id = 0;
+  var title = 'Task 1';
+  var description = 'Task description.';
+  var startTime = DateTime.now();
+  var endTime = DateTime.now();
+  var status = 0;
+
+  Task(this.listId, this.id, this.title, this.description, this.startTime, this.endTime, this.status);
+}
+
+class TaskList {
+  var id = 0;
+  var title = 'Todo List';
+  Map<int, Task> tasks = <int, Task>{};
+
+  TaskList(this.id, this.title, this.tasks);
+}
+
 void main() {
+  init();
   runApp(MyApp());
 }
 
@@ -14,7 +36,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => MyAppState(),
+      create: (context) => AppState(),
       child: MaterialApp(
         title: "SCOM",
         theme: ThemeData(
@@ -27,107 +49,117 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyAppState extends ChangeNotifier {
-  var todoList = <TodoList>[];
-  var initialized = false;
-  var addTaskPage = false;
-  var listIndex = 0; // use for what?
-  var afterDelete = false;
+var initialized = false;
+var taskList = <int, TaskList>{};
 
-  void init() { // TODO free ptr trans from c
-    if (!initialized) {
-      database.initDatabaseC();
-      var listNum = database.queryTaskListNum();
-      print("listNum: $listNum");
-      for (var i = 0; i < listNum; i++) {
-        var list = TodoList();
-        list.id = database.queryTaskListId(i);
-        list.indexed = i;
-        list.name = database.queryTaskListName(list.id).toDartString();
-        var taskNum = database.queryTaskNum(list.id);
-        print("List$i, taskNum: $taskNum");
-        for (var j = 0; j < taskNum; j++) {
-          var taskC = database.getTaskC(list.id, j);
-          var task = changeTaskCtoTask(taskC);
-          list.taskList.add(task);
-        }
-        todoList.add(list);
-      }
-      initialized = true;
-      // notifyListeners();
-    }
-  }
+void init() {
+  if (!initialized) {
+    database.initDatabaseC();
 
-  void intoAddTaskPage() {
-    addTaskPage = true;
-    notifyListeners();
-  }
-
-  void addTask(int listIndex, String title, String description, DateTime startTime, DateTime endTime, int status) {
-    var newTask = Task(listIndex, 0, title, description, startTime, endTime, status);
-    var newTaskId = database.addTaskC(todoList[listIndex].id, newTask.title.toNativeUtf8(), newTask.description.toNativeUtf8(), newTask.startTime.toIso8601String().toNativeUtf8(), newTask.endTime.toIso8601String().toNativeUtf8(), newTask.stat);
-    print("$newTaskId");
-    print("listIndex: $listIndex, title: $title, description: $description, startTime: $startTime, endTime: $endTime, status: $status");
-    newTask.id = newTaskId;
-    todoList[listIndex].taskList.add(newTask);
-    notifyListeners();
-  }
-  
-  void addList(String listName) {
-    var newTaskListId = database.addTaskList(listName.toNativeUtf8());
-    var newList = TodoList();
-    newList.id = newTaskListId;
-    newList.indexed = todoList.length;
-    newList.name = listName;
-    todoList.add(newList);
-    notifyListeners();
-  }
-
-  void updateTaskStatus(int listIndex, int taskId, int status) {
-    print("update list$listIndex task$taskId stat:$status");
-    database.updateStatTaskC(todoList[listIndex].id, taskId, status);
-    // todoList[listIndex].taskList[taskIndex].stat = status;
-    notifyListeners();
-  }
-
-  void deleteTask(int listIndex, int taskId, Task task) {
-    database.deleteTaskC(todoList[listIndex].id, taskId);
-    todoList[listIndex].taskList.remove(task);
-
-    // update list indexed
-    var listNum = database.queryTaskListNum();
+    var listNum = database.preGetTaskListC();
     for (var i = 0; i < listNum; i++) {
-      todoList[i].indexed = i;
+      var listC = database.getTaskListC();
+      var list = listCToList(listC);
+      taskList[list.id] = list;
     }
 
-    notifyListeners();
-  }
+    var taskNum = database.preGetTaskC();
+    developer.log('taskNum: $taskNum', level: 800);
+    for (var i = 0; i < taskNum; i++) {
+      developer.log('Task $i', level: 800);
+      var taskC = database.getTaskC();
+      var task = taskCToTask(taskC);
+      if (taskList[task.listId] == null) {
+        developer.log('No List found for a task!', level: 1000, error: task.listId);
+      } else {
+        taskList[task.listId]!.tasks[task.id] = task;
+      }
+    }
 
-  void modifyTask(int listIndex, int taskId, Task task, Task oldTask) {
-    // todoList[listIndex].taskList[taskIndex] = task;
-    todoList[listIndex].taskList.remove(oldTask);
-    todoList[listIndex].taskList.add(task);
+    developer.log('init finished.', level: 800);
+    initialized = true;
+  } else {
+    developer.log('Repeated init.', level: 900);
+  }
+}
+
+void addList(TaskList list) {
+  developer.log('addList', level: 800, error: list);
+  list.id = database.addTaskListC(list.title.toNativeUtf8());
+  taskList[list.id] = list;
+}
+
+void addTask(Task task) {
+  developer.log('addTask', level: 800, error: task);
+  task.id = database.addTaskC(task.listId, task.title.toNativeUtf8(), task.description.toNativeUtf8(), task.startTime.toString().toNativeUtf8(), task.endTime.toString().toNativeUtf8(), task.status);
+  if (taskList[task.listId] == null) {
+    developer.log('No list found for a task!', level: 1000, error: task.listId);
+  } else {
+    taskList[task.listId]!.tasks[task.id] = task;
+  }
+}
+
+void deleteTask(int id, int listId) {
+  database.deleteTaskC(id);
+  if (taskList[listId] == null) {
+    developer.log('No list found for a task!', level: 1000, error: listId);
+  } else {
+    taskList[listId]!.tasks.remove(id);
+  }
+}
+
+void modifyTask(int id, int listId) {
+  if (taskList[listId] == null) {
+    developer.log('No list found for a task!', level: 1000, error: listId);
+  } else {
+    if (taskList[listId]!.tasks[id] == null) {
+      developer.log('No task found!', level: 1000, error: id);
+    }
+    var task = taskList[listId]!.tasks[id];
+    database.updateTaskC(listId, id, task!.title.toNativeUtf8(), task.description.toNativeUtf8(), task.startTime.toString().toNativeUtf8(), task.endTime.toString().toNativeUtf8(), task.status);
+  }
+}
+
+void moveTask(int id, int listId, int newListId) {
+  if (taskList[listId] == null || taskList[newListId] == null) {
+    developer.log('No list found for a task!', level: 1000, error: listId);
+  } else {
+    if (taskList[listId]!.tasks[id] == null) {
+      developer.log('No task found!', level: 1000, error: id);
+    }
+    var task = taskList[listId]!.tasks[id];
     database.updateTaskC(
-      todoList[listIndex].id,
-      taskId,
-      task.title.toNativeUtf8(),
+      newListId,
+      id,
+      task!.title.toNativeUtf8(),
       task.description.toNativeUtf8(),
       task.startTime.toString().toNativeUtf8(),
       task.endTime.toString().toNativeUtf8(),
-      task.stat
+      task.status
     );
-    print("${listIndex}, ${taskId}, ${task.title.toString()}, ${task.description.toString()}, ${task.startTime.toString()}, ${task.endTime.toString()}, ${task.stat}");
-    notifyListeners();
+    taskList[listId]!.tasks.remove(id);
+    task.listId = newListId;
+    taskList[newListId]!.tasks[id] = task;
   }
+}
 
-  void deleteTaskList(int listIndex) {
-    database.deleteTaskListC(todoList[listIndex].id);
-    todoList.removeAt(listIndex);
-    afterDelete = true;
-    notifyListeners();
-  }
+void deleteList(int id) {
+  database.deleteTaskListC(id);
+  taskList.remove(id);
+}
 
-  void changeStatus() {
+TaskList listCToList(Dart_TaskList list) {
+  var dartList = TaskList(list.id, list.title.toDartString().toString(), {});
+  return dartList;
+}
+
+Task taskCToTask(Dart_Task task) {
+  var dartTask = Task(task.list_id, task.id, task.title.toDartString().toString(), task.description.toDartString().toString(), DateTime.parse(task.startDate.toDartString().toString()), DateTime.parse(task.endDate.toDartString().toString()), task.status);
+  return dartTask;
+}
+
+class AppState extends ChangeNotifier {
+  void notify() {
     notifyListeners();
   }
 }
@@ -160,8 +192,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
     IconData calendarIcon = Icons.calendar_month;
 
-    var appState = context.watch<MyAppState>();
-
     return LayoutBuilder(builder: (context, constraints) {
       return Scaffold(
         body: Row (
@@ -184,72 +214,34 @@ class TodoPage extends StatefulWidget {
   State<TodoPage> createState() => _TodoPageState();
 }
 
-// final class TaskC extends Struct {
-//   @Int32()
-//   external int listId, id;
-//
-//   external Pointer<Utf8> title, description, startTime, endTime;
-//
-//   @Int32()
-//   external int status;
-// }
-
-class Task {
-  var listId = 0;
-  var id = 0;
-  var title = 'Task 1';
-  var description = 'Task description.';
-  var startTime = DateTime.now();
-  var endTime = DateTime.now();
-  var stat = 0;
-
-  Task(this.listId, this.id, this.title, this.description, this.startTime, this.endTime, this.stat);
-}
-
 Task changeTaskCtoTask(Dart_Task task) {
   return Task(task.list_id, task.id, task.title.toDartString(), task.description.toDartString(), DateTime.parse(task.startDate.toDartString()), DateTime.parse(task.endDate.toDartString()), task.status);
 }
 
-int getTodoListNum() {
-  return 0;
-}
-
-int getTask(int listId) {
-  return 0;
-}
-
-class TodoList {
-  var id = 0;
-  var indexed = 0;
-  var name = 'Todo List';
-  var taskList = <Task>[];
-}
-
 class MyNavigationRail extends StatefulWidget {
-  // final selectedIndex = 0;
   const MyNavigationRail({
     super.key,
     this.destinations = const [],
     required this.onDestinationSelected,
     required this.selectedIndex,
   });
-  final List<Widget> destinations;
-  final ValueChanged<int> onDestinationSelected;
+  final List<(int, Widget)> destinations;
+  final ValueChanged<(int, int)> onDestinationSelected;
   final int selectedIndex;
 
   @override
   State<MyNavigationRail> createState() => _MyNavigationRailState();
-
-
 }
 
 class MyDestination {
   MyDestination({
     required this.widget,
     required this.index,
+    required this.id,
   });
   Widget widget;
   int index;
+  int id;
 }
 
 class _MyNavigationRailState extends State<MyNavigationRail> {
@@ -261,7 +253,7 @@ class _MyNavigationRailState extends State<MyNavigationRail> {
     selectedIndex = widget.selectedIndex;
     List<MyDestination> list = [];
     for (var i = 0; i < widget.destinations.length; i++) {
-      list.add(MyDestination(widget: widget.destinations[i], index: i));
+      list.add(MyDestination(widget: widget.destinations[i].$2, index: i, id: widget.destinations[i].$1));
     }
     var destinations = list.map((destination) {
       if (destination.index == selectedIndex) {
@@ -275,7 +267,7 @@ class _MyNavigationRailState extends State<MyNavigationRail> {
               onTap: (){
                 setState(() {
                   selectedIndex = destination.index;
-                  widget.onDestinationSelected(destination.index);
+                  widget.onDestinationSelected((destination.index, destination.id));
                 });
               },
               child: destination.widget,
@@ -286,12 +278,9 @@ class _MyNavigationRailState extends State<MyNavigationRail> {
         margin: EdgeInsets.all(10.0),
         child: InkWell(
           onTap: (){
-            // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            //   content: Text('Tap'),
-            // ));
             setState(() {
               selectedIndex = destination.index;
-              widget.onDestinationSelected(destination.index);
+              widget.onDestinationSelected((destination.index, destination.id));
             });
           },
           child: destination.widget,
@@ -333,7 +322,7 @@ class AddTaskListPage<T> extends PopupRoute<T> {
       Animation<double> secondaryAnimation) {
 
     var titleController = TextEditingController();
-    var appState = context.watch<MyAppState>();
+    var appState = context.watch<AppState>();
 
     return Center(
       child: DefaultTextStyle(
@@ -390,7 +379,9 @@ class AddTaskListPage<T> extends PopupRoute<T> {
                   ),
                   ElevatedButton(
                     onPressed: (){
-                      appState.addList(titleController.text);
+                      var list = TaskList(0, titleController.text, {});
+                      addList(list);
+                      appState.notify();
                       Navigator.of(context).pop();
                     },
                     child: Text("Add"),
@@ -411,61 +402,67 @@ class AddTaskListPage<T> extends PopupRoute<T> {
 
 class _TodoPageState extends State<TodoPage> {
   var selectedIndex = 0;
+  var selectedListId = 0;
 
   @override
   Widget build(BuildContext context) { // TODO deal with none todo list
-    var appState = context.watch<MyAppState>();
-    appState.init();
+    var appState = context.watch<AppState>();
 
     Widget page;
 
-    var destination = appState.todoList.map((list) => Row(
+    var destination = taskList.values.map((list) => (list.id, Row(
       children: [
         Icon(Icons.star),
         SizedBox(width: 10.0),
-        Text(list.name),
+        Text(list.title),
       ],
-    )).toList();
+    ))).toList();
 
-    destination.add(Row(
+    destination.add((0, Row(
       children: [
         Icon(Icons.add_circle),
         SizedBox(width: 10.0),
         Text("Add List"),
       ],
-    ));
+    )));
 
-    if (appState.afterDelete) {
-      setState(() {
-        appState.afterDelete = false;
-        appState.listIndex = 0;
-        selectedIndex = 0;
-      });
-    }
+    // TODO
+    // if (appState.afterDelete) {
+    //   setState(() {
+    //     appState.afterDelete = false;
+    //     appState.listIndex = 0;
+    //     selectedIndex = 0;
+    //   });
+    // }
 
     var myNavigationRail = MyNavigationRail(
       destinations: destination,
-      onDestinationSelected: (index){
+      onDestinationSelected: (value){
         setState(() {
-          if (index == appState.todoList.length) {
+          var index = value.$1, id = value.$2;
+          if (index == taskList.length) {
             Navigator.of(context).push(AddTaskListPage());
             return;
           }
           selectedIndex = index;
-          appState.listIndex = index;
+          selectedListId = id;
         });
       },
       selectedIndex: selectedIndex,
     );
 
-    // if(selectedIndex == appState.todoList.length) {
+    // if(selectedIndex == appState.tasklist.length) {
     //   Navigator.of(context).push(AddTaskListPage());
     //   return build(context);
     // }
 
-    page = GeneratorTodoPage(listIndex: selectedIndex);
+    if (destination.length == 1) {
+      page = Scaffold();
+    }
 
-    print("${appState.todoList.length}");
+    page = GeneratorTodoPage(listIndex: selectedListId);
+
+    // print("${appState.tasklist.length}");
 
     return Scaffold(
       body: Row(
@@ -503,7 +500,7 @@ class GeneratorTodoPage extends StatefulWidget {
 class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
   @override build(BuildContext context) {
     // widget.list.taskList.add(Task(1, 'eltiT', 'Todo2', DateTime.now(), DateTime.now(), 1));
-    var appState = context.watch<MyAppState>();
+    var appState = context.watch<AppState>();
 
     // var addTaskPage = GeneratorAddTaskPage(child: Text('???'));
 
@@ -511,13 +508,17 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
     //   return addTaskPage;
     // }
 
+    if (taskList[widget.listIndex] == null) {
+      return Scaffold();
+    }
+
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () {
           setState(() {
             Navigator.of(context).push(
-              AddTaskPage<void>()
+              AddTaskPage<void>(listId: widget.listIndex)
             );
           });
         },
@@ -534,12 +535,13 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
                   SizedBox(width: 10),
                   Icon(Icons.star),
                   SizedBox(width: 10),
-                  Text(appState.todoList[widget.listIndex].name),
+                  Text(taskList[widget.listIndex]!.title),
                   Expanded(child: SizedBox()),
                   ElevatedButton.icon(
                     onPressed: () {
                       setState(() {
-                        appState.deleteTaskList(widget.listIndex);
+                        deleteList(widget.listIndex);
+                        appState.notify();
                       });
                     },
                     label: Icon(Icons.delete),
@@ -557,12 +559,12 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
                     SizedBox(width: 15),
                     Expanded(
                       child: ListView(
-                        children: appState.todoList[widget.listIndex].taskList.map((task) => task.stat != 4 ? Container(
+                        children: taskList[widget.listIndex]!.tasks.values.map((task) => task.status != 4 ? Container(
                           // color: task.stat != 2 ? Theme.of(context).colorScheme.primaryContainer : Colors.deepOrange[300],
                           margin: EdgeInsets.all(10.0),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10.0),
-                            color: task.stat != 2 ? Theme.of(context).colorScheme.primaryContainer : Colors.deepOrange[300],
+                            color: task.status != 2 ? Theme.of(context).colorScheme.primaryContainer : Colors.deepOrange[300],
                             border: Border.all(
                               color: Colors.black,
                               width: 1.0,
@@ -583,22 +585,35 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
                                 ElevatedButton.icon(
                                   onPressed: (){
                                     setState((){
-                                      task.stat = task.stat == 1 ? 0 : 1;
-                                      print('changed task${task.id}');
-                                      appState.updateTaskStatus(widget.listIndex, task.id, task.stat);
+                                      task.status = task.status == 1 ? 0 : 1;
+                                      // print('changed task${task.id}');
+                                      modifyTask(task.id, widget.listIndex);
+                                      // updateTaskStatus(widget.listIndex, task.id, task.status);
                                     });
                                   },
-                                  label: Icon(task.stat == 1 ? Icons.task_alt : Icons.circle),
+                                  label: Icon(task.status == 1 ? Icons.task_alt : Icons.circle),
                                 ),
                                 SizedBox(width: 10),
-                                Text('${task.title}'),
+                                Text(task.title),
                                 Expanded(child: SizedBox()),
+                                ElevatedButton(
+                                    onPressed: (){
+                                      setState(() {
+                                        Navigator.of(context).push(
+                                          MoveTaskPage(task: task)
+                                        );
+                                      });
+                                    },
+                                    child: Text("Move"),
+                                ),
+                                SizedBox(width: 10.0),
                                 ElevatedButton(
                                     onPressed: (){
                                       // task.stat = 4;
                                       // modifyTaskState.task = task;
                                       // appState.modifyTask(modifyTaskState.task.listId, modifyTaskState.task.id, modifyTaskState.task);
-                                      appState.deleteTask(widget.listIndex, task.id, task);
+                                      deleteTask(task.id, widget.listIndex);
+                                      appState.notify();
                                     },
                                     child: Text("Delete"),
                                 ),
@@ -628,6 +643,11 @@ class AddTaskState {
 AddTaskState addTaskState = AddTaskState();
 
 class AddTaskPage<T> extends PopupRoute<T> {
+
+  int listId;
+
+  AddTaskPage({required this.listId});
+
   @override
   Color? get barrierColor => Colors.black.withAlpha(0x50);
 
@@ -648,7 +668,7 @@ class AddTaskPage<T> extends PopupRoute<T> {
 
     var titleController = TextEditingController();
     var descriptionController = TextEditingController();
-    var appState = context.watch<MyAppState>();
+    var appState = context.watch<AppState>();
 
     print("Changed");
     print(addTaskState.startTime.toString());
@@ -721,7 +741,10 @@ class AddTaskPage<T> extends PopupRoute<T> {
                   ),
                   ElevatedButton(
                       onPressed: (){
-                        appState.addTask(appState.listIndex, titleController.text, descriptionController.text, addTaskState.startTime, addTaskState.endTime, 1);
+                        var task = Task(listId, 0, titleController.text, descriptionController.text, addTaskState.startTime, addTaskState.endTime, 1);
+                        addTask(task);
+                        appState.notify();
+                        Navigator.of(context).pop();
                       },
                       child: Text("Add"),
                   ),
@@ -736,6 +759,80 @@ class AddTaskPage<T> extends PopupRoute<T> {
     );
   }
 }
+
+class MoveTaskPage<T> extends PopupRoute<T> {
+  MoveTaskPage({
+    required this.task,
+  });
+
+  @override
+  Color? get barrierColor => Colors.black.withAlpha(0x50);
+
+  // This allows the popup to be dismissed by tapping the scrim or by pressing
+  // the escape key on the keyboard.
+  @override
+  bool get barrierDismissible => true;
+
+  @override
+  String? get barrierLabel => 'Move Task';
+
+  @override
+  Duration get transitionDuration => const Duration(milliseconds: 300);
+
+  final Task task;
+
+  @override
+  Widget buildPage(BuildContext context, Animation<double> animation,
+      Animation<double> secondaryAnimation) {
+    var appState = context.watch<AppState>();
+
+    return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          var height = (constraints.maxHeight - 100.0) / 2;
+          var width = (constraints.maxWidth - 500.0) / 2;
+
+          var listController = TextEditingController();
+          var selectedList;
+
+          return Container(
+            margin: EdgeInsets.fromLTRB(width, height, width, height),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Colors.white,
+            ),
+            child: Scaffold(
+              body: Center(
+                child: Row(children: [
+                  Expanded(child: SizedBox()),
+                  DropdownMenu<int>(
+                    label: const Text('Move'),
+                    dropdownMenuEntries: taskList.values.map((list) =>
+                        DropdownMenuEntry<int>(
+                          value: list.id,
+                          label: list.title,
+                        )).toList(),
+                    controller: listController,
+                    onSelected: (int? listId){
+                      selectedList = listId;
+                    },
+                  ),
+                  SizedBox(width: 50.0),
+                  ElevatedButton(onPressed: () {
+                    moveTask(task.id, task.listId, selectedList);
+                    appState.notify();
+                    Navigator.pop(context);
+                  }, child: Text("Move")),
+                  Expanded(child: SizedBox()),
+                ],
+                ),
+              ),
+            ),
+          );
+        }
+    );
+  }
+}
+
 
 class AddTaskPageCalendar extends StatefulWidget {
   @override
@@ -841,12 +938,12 @@ class modifyTaskPage<T> extends PopupRoute<T> {
 
     var titleController = TextEditingController();
     var descriptionController = TextEditingController();
-    var appState = context.watch<MyAppState>();
+    var appState = context.watch<AppState>();
 
     titleController.text = modifyTaskState.task.title;
     descriptionController.text = modifyTaskState.task.description;
-    modifyTaskState.task.startTime = modifyTaskState.task.startTime;
-    modifyTaskState.task.endTime = modifyTaskState.task.endTime;
+    addTaskState.startTime = modifyTaskState.task.startTime;
+    addTaskState.endTime = modifyTaskState.task.endTime;
 
     print("Changed");
     print(addTaskState.startTime.toString());
@@ -919,7 +1016,8 @@ class modifyTaskPage<T> extends PopupRoute<T> {
                       onPressed: (){
                         // modifyTaskState.task.stat = 4;
                         // appState.modifyTask(modifyTaskState.task.listId, modifyTaskState.task.id, modifyTaskState.task);
-                        appState.deleteTask(modifyTaskState.listIndex, modifyTaskState.task.id, modifyTaskState.task);
+                        deleteTask(modifyTaskState.task.id, modifyTaskState.listIndex);
+                        appState.notify();
                         Navigator.of(context).pop();
                       },
                       child: Text("Delete"),
@@ -934,7 +1032,9 @@ class modifyTaskPage<T> extends PopupRoute<T> {
                         modifyTaskState.task.description = descriptionController.text;
                         modifyTaskState.task.startTime = addTaskState.startTime;
                         modifyTaskState.task.endTime = addTaskState.endTime;
-                        appState.modifyTask(modifyTaskState.listIndex, modifyTaskState.task.id, modifyTaskState.task, temp);
+                        taskList[modifyTaskState.listIndex]!.tasks[temp.id] = temp;
+                        modifyTask(modifyTaskState.task.id, modifyTaskState.listIndex);
+                        // modifyTask(modifyTaskState.listIndex, modifyTaskState.task.id);
                       },
                       child: Text("Save"),
                   ),
@@ -950,93 +1050,6 @@ class modifyTaskPage<T> extends PopupRoute<T> {
   }
 }
 
-// class generatorAddTaskPage extends PopupRoute<void> {
-//   @override
-//   Color get barrierColor => Colors.black.withOpacity(0.5);
-//
-//   @override
-//   // TODO: implement barrierDismissible
-//   bool get barrierDismissible => throw UnimplementedError();
-//
-//   @override
-//   // TODO: implement barrierLabel
-//   String? get barrierLabel => throw UnimplementedError();
-//
-//   @override
-//   Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
-//     // TODO: implement buildPage
-//
-//     return Center(
-//       child: Container(
-//         height: 200,
-//         width: 200,
-//         color: Colors.white,
-//         child: Column(
-//           children: [
-//             Text('Add Task'),
-//             TextField(
-//               decoration: InputDecoration(
-//                 hintText: 'Task Name',
-//               ),
-//             ),
-//             TextField(
-//               decoration: InputDecoration(
-//                 hintText: 'Task Description',
-//               ),
-//             ),
-//             ElevatedButton(
-//               onPressed: (){
-//                 Navigator.of(context).pop();
-//               },
-//               child: Text('Add Task'),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//
-//     throw UnimplementedError();
-//   }
-//
-//   @override
-//   // TODO: implement transitionDuration
-//   Duration get transitionDuration => throw UnimplementedError();
-//
-//
-// }
-
-// class GeneratorAddTaskHolePage extends PopupMenuEntry<void> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Text('Add Task');
-//   }
-//
-//   @override
-//   State<StatefulWidget> createState() {
-//     // TODO: implement createState
-//     throw UnimplementedError();
-//   }
-//
-//   @override
-//   // TODO: implement height
-//   double get height => throw UnimplementedError();
-//
-//   @override
-//   bool represents(void value) {
-//     // TODO: implement represents
-//     throw UnimplementedError();
-//   }
-// }
-
-// class GeneratorAddTaskPage extends PopupMenuItem {
-//   GeneratorAddTaskPage({required super.child});
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Text('Add Task');
-//   }
-// }
-
 class CalendarPage extends StatefulWidget {
   @override
   State<CalendarPage> createState() => _CalendarPageState();
@@ -1047,8 +1060,8 @@ class _CalendarPageState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
-    appState.init();
+    var appState = context.watch<AppState>();
+    // appState.init();
 
     // var calendarState = context.watch<CalendarState>();
 
