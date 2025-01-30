@@ -67,6 +67,27 @@ TEST_SUITE("Database Test") {
             CHECK(db.delete_task(id) == 0);
         }
 
+        SUBCASE("Test delete list with task") {
+            Database::TaskList *list;
+            db.new_task_list(list);
+            fill_list(list);
+            auto list_id = list->get_id();
+            db.add_task_list(list);
+
+            Database::Task *task;
+            db.new_task(task);
+            fill_task(task);
+            task->belong = list_id;
+            db.add_task(task);
+
+            uint pre_task_num;
+            db.query_task_num(pre_task_num);
+            CHECK(db.delete_task_list(list_id) == 0);
+            uint task_num;
+            db.query_task_num(task_num);
+            CHECK(pre_task_num == task_num + 1);
+        }
+
         SUBCASE("Test query list") {
             Database::TaskList *list;
             db.new_task_list(list);
