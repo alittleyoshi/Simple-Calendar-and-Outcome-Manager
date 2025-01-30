@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <iostream>
 #include <string>
-#include <sstream> // for macos
+#include <sstream> // for macOS
 #include "sqlite3.h"
 
 #include "easylogging++.h"
@@ -64,19 +64,19 @@ Database::Database(const string& file_path) {
     }
 
     run_sql_cmd("SELECT VALUE FROM META WHERE NAME = 'LIST_ID';", [](void* data, int argc, char** argv, char** colName) -> int {
-        *static_cast<int*>(data) = std::stoi(argv[0]);
+        *static_cast<uint*>(data) = std::stoi(argv[0]);
         return 0;
     }, &task_list_id);
     run_sql_cmd("SELECT COUNT(*) FROM LISTS;", [](void* data, int argc, char** argv, char** colName) -> int {
-        *static_cast<int*>(data) = std::stoi(argv[0]);
+        *static_cast<uint*>(data) = std::stoi(argv[0]);
         return 0;
     }, &task_list_num);
     run_sql_cmd("SELECT VALUE FROM META WHERE NAME = 'TASK_ID';", [](void* data, int argc, char** argv, char** colName) -> int {
-        *static_cast<int*>(data) = std::stoi(argv[0]);
+        *static_cast<uint*>(data) = std::stoi(argv[0]);
         return 0;
     }, &task_id);
     run_sql_cmd("SELECT COUNT(*) FROM TASKS;", [](void* data, int argc, char** argv, char** colName) -> int {
-        *static_cast<int*>(data) = std::stoi(argv[0]);
+        *static_cast<uint*>(data) = std::stoi(argv[0]);
         return 0;
     }, &task_num);
 
@@ -110,12 +110,19 @@ int Database::delete_task_list(uint id) {
     int code = run_sql_cmd(std::format("DELETE FROM LISTS WHERE ID = '{}';", id).c_str(), nullptr, nullptr);
     if (code == 0) {
         task_list_num--;
-        return 0;
+        int delete_task_num;
+        run_sql_cmd(format("SELECT COUNT(*) FROM TASKS WHERE BELONG = '{}';", id).c_str(), [](void* data, int argc, char** argv, char** colName) -> int {
+            *static_cast<int*>(data) = std::stoi(argv[0]);
+            return 0;
+        }, &delete_task_num);
+        task_num -= delete_task_num;
+        code = run_sql_cmd(format("DELETE FROM TASKS WHERE BELONG = '{}';", id).c_str(), nullptr, nullptr);
+        return code == 0 ? 0 : -1;
     }
     return code;
 }
 
-int Database::query_task_list_num(uint& num) {
+int Database::query_task_list_num(uint& num) const {
     num = task_list_num;
     return 0;
 }
@@ -161,7 +168,7 @@ int Database::add_task(Task* task) {
 }
 
 int Database::delete_task(uint id) {
-    int code = run_sql_cmd("DELETE FROM TASKS WHERE ID = '{}';", nullptr, nullptr);
+    int code = run_sql_cmd(format("DELETE FROM TASKS WHERE ID = '{}';", id).c_str(), nullptr, nullptr);
     if (code == 0) {
         task_num--;
         return 0;
@@ -169,7 +176,7 @@ int Database::delete_task(uint id) {
     return code;
 }
 
-int Database::query_task_num(uint& num) {
+int Database::query_task_num(uint& num) const {
     num = task_num;
     return 0;
 }
