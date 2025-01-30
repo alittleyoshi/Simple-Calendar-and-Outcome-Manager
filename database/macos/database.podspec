@@ -23,6 +23,6 @@ A new Flutter FFI plugin project.
   s.libraries = 'sqlite3'
 
   s.platform = :osx, '10.11'
-  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'CLANG_CXX_LANGUAGE_STANDARD' => 'c++20' }
+  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'CLANG_CXX_LANGUAGE_STANDARD' => 'c++20', 'CLANG_CXX_LIBRARY' => 'libstdc++' }
   s.swift_version = '5.0'
 end
