@@ -66,7 +66,7 @@ int Database::query_task_list(uint id, TaskList*& task_list) {
 }
 
 int Database::query_all_task_list(vector<TaskList>& task_lists) {
-    return run_sql_cmd(format("SELECT * FROM LISTS;").c_str(), [](void* data, int argc, char** argv, char** colName) -> int {
+    return run_sql_cmd("SELECT * FROM LISTS;", [](void* data, int argc, char** argv, char** colName) -> int {
         static_cast<vector<TaskList>*>(data)->push_back(TaskList{static_cast<uint>(std::stoi(argv[0]))});
         static_cast<vector<TaskList>*>(data)->back().title = argv[1];
         return 0;
@@ -122,7 +122,7 @@ int Database::query_task_num(uint& num) const {
 int Database::query_task(uint id, Task*& task) {
     task = new Task{id};
     std::stringstream ss;
-    ss << "SELECT BELONG, TITLE, DESCRIPTION, START_TIME, END_TIME, STATUS FROM TASKS WHERE ID = '" << id << "';"
+    ss << "SELECT BELONG, TITLE, DESCRIPTION, START_TIME, END_TIME, STATUS FROM TASKS WHERE ID = '" << id << "';";
     return run_sql_cmd(ss.str().c_str(), [](void* data, int argc, char** argv, char** colName) -> int {
         static_cast<Task*>(data)->belong = std::stoi(argv[0]);
         static_cast<Task*>(data)->title = argv[1];
@@ -135,7 +135,7 @@ int Database::query_task(uint id, Task*& task) {
 }
 
 int Database::query_all_task(vector<Task>& tasks) {
-    return run_sql_cmd(format("SELECT * FROM TASKS;").c_str(), [](void* data, int argc, char** argv, char** colName) -> int {
+    return run_sql_cmd("SELECT * FROM TASKS;", [](void* data, int argc, char** argv, char** colName) -> int {
         static_cast<vector<Task>*>(data)->push_back(Task{static_cast<uint>(std::stoi(argv[0]))});
         static_cast<vector<Task>*>(data)->back().belong = std::stoi(argv[1]);
         static_cast<vector<Task>*>(data)->back().title = argv[2];
