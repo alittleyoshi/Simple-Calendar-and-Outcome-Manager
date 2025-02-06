@@ -23,8 +23,8 @@ int Database::run_sql_cmd(const char* sql_cmd, int(* callback)(void*, int, char*
     int rc = sqlite3_exec(database, sql_cmd, callback, data, &errMsg);
 
     if (rc != SQLITE_OK) {
-        LOG(ERROR) << "SQL Command Failed!" << std::endl;
-        LOG(ERROR) << "Error Message: " << errMsg << std::endl;
+        LOG(ERROR) << "SQL Command Failed!";
+        LOG(ERROR) << "Error Message: " << errMsg;
         sqlite3_free(errMsg);
         return -1;
     }
@@ -59,7 +59,7 @@ Database::Database(const string& file_path) {
         return;
     }
     if (version != 3) {
-        LOG(ERROR) << "Unexpected database version!" << std::endl;
+        LOG(ERROR) << "Unexpected database version!";
         throw std::runtime_error("Error: unexpected database version!");
     }
 
@@ -267,13 +267,13 @@ Database* db = nullptr;
 bool inited = false;
 int Dart_init() {
     if (inited) {
-        LOG(WARNING) << "Repeated init." << std::endl;
+        LOG(WARNING) << "Repeated init.";
         return -2;
     }
 
     db = new Database("tasks.db");
     inited = true;
-    LOG(DEBUG) << "Init finished." << std::endl;
+    LOG(DEBUG) << "Init finished.";
 
     return 0;
 }
@@ -298,10 +298,10 @@ int Dart_get_list_pre() {
         db->query_all_task_list(lists);
         list_cnt = 0;
         list_pre = true;
-        LOG(DEBUG) << "List preloaded." << std::endl;
+        LOG(DEBUG) << "List preloaded.";
         return static_cast<int>(list_num);
     }
-    LOG(ERROR) << "No inited or already preloaded." << std::endl;
+    LOG(ERROR) << "No inited or already preloaded.";
     return -1;
 }
 
@@ -311,10 +311,10 @@ int Dart_get_task_pre() {
         db->query_all_task(tasks);
         task_cnt = 0;
         task_pre = true;
-        LOG(DEBUG) << "Task preloaded." << std::endl;
+        LOG(DEBUG) << "Task preloaded.";
         return static_cast<int>(task_num);
     }
-    LOG(ERROR) << "No inited or already preloaded." << std::endl;
+    LOG(ERROR) << "No inited or already preloaded.";
     return -1;
 }
 
@@ -322,7 +322,7 @@ Dart_TaskList Dart_get_list() {
     if (list_pre && list_cnt < list_num) {
         return list_to_dart_task_list(lists[list_cnt++]);
     }
-    LOG(ERROR) << "No preloaded or already finished." << std::endl;
+    LOG(ERROR) << "No preloaded or already finished.";
     return Dart_TaskList{};
 }
 
@@ -330,7 +330,7 @@ Dart_Task Dart_get_task() {
     if (task_pre && task_cnt < task_num) {
         return task_to_dart_task(tasks[task_cnt++]);
     }
-    LOG(ERROR) << "No preloaded or already finished." << std::endl;
+    LOG(ERROR) << "No preloaded or already finished.";
     return Dart_Task{};
 }
 
@@ -343,7 +343,7 @@ int Dart_create_tasklist(const char* list_name) {
         db->add_task_list(list);
         return id;
     }
-    LOG(ERROR) << "No inited." << std::endl;
+    LOG(ERROR) << "No inited.";
     return -1;
 }
 
@@ -362,7 +362,7 @@ int Dart_create_task(int list_id, const char* title, const char* description, co
         db->add_task(task);
         return id;
     }
-    LOG(ERROR) << "No inited." << std::endl;
+    LOG(ERROR) << "No inited.";
     return -1;
 }
 
@@ -380,7 +380,7 @@ int Dart_update_task(int list_id, int task_id, const char* title, const char* de
         db->update_task(*task);
         return 0;
     }
-    LOG(ERROR) << "No inited." << std::endl;
+    LOG(ERROR) << "No inited.";
     return -1;
 }
 
@@ -389,7 +389,7 @@ int Dart_delete_task(int task_id) {
         db->delete_task(task_id);
         return 0;
     }
-    LOG(ERROR) << "No inited." << std::endl;
+    LOG(ERROR) << "No inited.";
     return -1;
 }
 
@@ -398,25 +398,25 @@ int Dart_delete_tasklist(int list_id) {
         db->delete_task_list(list_id);
         return 0;
     }
-    LOG(ERROR) << "No inited." << std::endl;
+    LOG(ERROR) << "No inited.";
     return -1;
 }
 
 int Dart_query_tasklist_num() {
-    LOG(WARNING) << "Function has been deprecated." << std::endl;
+    LOG(WARNING) << "Function has been deprecated.";
     uint ret = -1;
     db->query_task_list_num(ret);
     return static_cast<int>(ret);
 }
 
 int Dart_query_tasklist_id(int num) {
-    LOG(ERROR) << "Function has been deleted." << std::endl;
+    LOG(ERROR) << "Function has been deleted.";
     // throw std::runtime_error("Function has been deleted.");
     return -1;
 }
 
 char* Dart_query_tasklist_name(int id) {
-    LOG(WARNING) << "Function has been deprecated." << std::endl;
+    LOG(WARNING) << "Function has been deprecated.";
     TaskList *list;
     db->query_task_list(id, list);
     char* ret = new char[list->title.length() + 1];
@@ -425,13 +425,13 @@ char* Dart_query_tasklist_name(int id) {
 }
 
 int Dart_query_task_num(int task_num) {
-    LOG(ERROR) << "Function has been deleted." << std::endl;
+    LOG(ERROR) << "Function has been deleted.";
     // throw std::runtime_error("Function has been deleted.");
     return -1;
 }
 
 int Dart_update_task_stat(int list_id, int task_id, int stat) {
-    LOG(WARNING) << "Function has been deprecated." << std::endl;
+    LOG(WARNING) << "Function has been deprecated.";
     Task *task;
     db->query_task(task_id, task);
     task->status = stat;
@@ -440,7 +440,7 @@ int Dart_update_task_stat(int list_id, int task_id, int stat) {
 }
 
 int Dart_move_task(int list_id, int task_id, int to_list_id) {
-    LOG(WARNING) << "Function has been deprecated." << std::endl;
+    LOG(WARNING) << "Function has been deprecated.";
     Task *task;
     db->query_task(task_id, task);
     task->belong = to_list_id;
