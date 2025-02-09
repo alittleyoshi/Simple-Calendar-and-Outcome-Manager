@@ -68,7 +68,9 @@ void init() {
     for (var i = 0; i < taskNum; i++) {
       developer.log('Task $i', level: 800);
       var taskC = database.getTaskC();
+      developer.log('TaskC ${taskC.startDate.toDartString()}, ${taskC.endDate.toDartString()}', level: 800);
       var task = taskCToTask(taskC);
+      developer.log('Task ${task.startTime.toLocal()}, ${task.endTime.toLocal()}', level: 800);
       if (taskList[task.listId] == null) {
         developer.log('No List found for a task!', level: 1000, error: task.listId);
       } else {
@@ -92,6 +94,7 @@ void addList(TaskList list) {
 void addTask(Task task) {
   developer.log('addTask', level: 800, error: task);
   task.id = database.addTaskC(task.listId, task.title.toNativeUtf8(), task.description.toNativeUtf8(), task.startTime.toString().toNativeUtf8(), task.endTime.toString().toNativeUtf8(), task.status);
+  developer.log('Task ${task.startTime.toString()}, ${task.endTime.toString()}', level: 800);
   if (taskList[task.listId] == null) {
     developer.log('No list found for a task!', level: 1000, error: task.listId);
   } else {
@@ -196,6 +199,32 @@ class _MyHomePageState extends State<MyHomePage> {
       return Scaffold(
         body: Row (
           children: [
+            SafeArea(
+              child:
+                NavigationRail(
+                  extended: constraints.maxWidth >= 800,
+                  destinations: [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.checklist),
+                      label: Text('SCOM'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(calendarIcon),
+                      label: Text('Calendar'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.settings),
+                      label: Text('Settings'),
+                    ),
+                  ],
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: (value){
+                    setState(() {
+                      selectedIndex = value;
+                    });
+                  },
+                ),
+            ),
             Expanded(
               child: Container(
                 color: Theme.of(context).colorScheme.primaryContainer,
@@ -643,35 +672,33 @@ class AddTaskState {
 AddTaskState addTaskState = AddTaskState();
 
 class AddTaskPage<T> extends PopupRoute<T> {
-
-  int listId;
+  final int listId;
 
   AddTaskPage({required this.listId});
 
   @override
   Color? get barrierColor => Colors.black.withAlpha(0x50);
 
-  // This allows the popup to be dismissed by tapping the scrim or by pressing
-  // the escape key on the keyboard.
   @override
   bool get barrierDismissible => true;
 
   @override
-  String? get barrierLabel => 'Add Todo Task';
+  String? get barrierLabel => 'Add Task';
 
   @override
   Duration get transitionDuration => const Duration(milliseconds: 300);
 
+  DateTime selectedStartDate = DateTime.now();
+  DateTime selectedEndDate = DateTime.now();
+  TimeOfDay selectedStartTime = TimeOfDay.now();
+  TimeOfDay selectedEndTime = TimeOfDay.now();
+
   @override
   Widget buildPage(BuildContext context, Animation<double> animation,
       Animation<double> secondaryAnimation) {
-
     var titleController = TextEditingController();
     var descriptionController = TextEditingController();
     var appState = context.watch<AppState>();
-
-    print("Changed");
-    print(addTaskState.startTime.toString());
 
     return Center(
       child: DefaultTextStyle(
@@ -682,77 +709,190 @@ class AddTaskPage<T> extends PopupRoute<T> {
             borderRadius: BorderRadius.circular(10),
             color: Colors.white,
           ),
-          child: Column(
-            children: [
-              SizedBox(height: 10.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+          child: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return Column(
                 children: [
-                  Text('Add Todo Task',
-                  style: Theme.of(context).textTheme.headlineLarge),
-                ],
-              ),
-              SizedBox(height: 10.0),
-              Expanded(
-                // padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    SizedBox(width: 10.0),
-                    Expanded(
-                      // padding: const EdgeInsets.all(8.0),
-                      child: Scaffold(
-                        body: Column(
-                          children: [
-                            TextField(
-                              controller: titleController,
-                              decoration: InputDecoration(
-                                labelText: 'Task Title',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 10.0),
-                            TextField(
-                              controller: descriptionController,
-                              minLines: 2,
-                              maxLines: 10,
-                              decoration: InputDecoration(
-                                labelText: 'Task Description',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 10.0),
-                            AddTaskPageCalendar(),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 10.0),
-                  ],
-                ),
-              ),
-              Row(
-                children: [
+                  SizedBox(height: 10.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Add Task', style: Theme.of(context).textTheme.headlineLarge),
+                    ],
+                  ),
+                  SizedBox(height: 10.0),
                   Expanded(
-                    child: SizedBox(),
+                    child: Row(
+                      children: [
+                        SizedBox(width: 10.0),
+                        Expanded(
+                          child: Scaffold(
+                            body: Column(
+                              children: [
+                                TextField(
+                                  controller: titleController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Task Title',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 10.0),
+                                TextField(
+                                  controller: descriptionController,
+                                  minLines: 2,
+                                  maxLines: 10,
+                                  decoration: InputDecoration(
+                                    labelText: 'Task Description',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 10.0),
+                                // 日期选择器
+                                Row(
+                                  children: [
+                                    Text('Date: ${selectedStartDate.toLocal()}'),
+                                    SizedBox(width: 16),
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        final DateTime? pickedDate = await showDatePicker(
+                                          context: context,
+                                          initialDate: selectedStartDate,
+                                          firstDate: DateTime(2000),
+                                          lastDate: DateTime(2101),
+                                        );
+                                        if (pickedDate != null && pickedDate != selectedStartDate) {
+                                          setState(() {
+                                            selectedStartDate = pickedDate;
+                                          });
+                                        }
+                                      },
+                                      child: Text('Select Date'),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 10.0),
+                                // 开始时间选择器
+                                Row(
+                                  children: [
+                                    Text('Start Time: ${selectedStartTime.format(context)}'),
+                                    SizedBox(width: 16),
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        final TimeOfDay? pickedTime = await showTimePicker(
+                                          context: context,
+                                          initialTime: selectedStartTime,
+                                        );
+                                        if (pickedTime != null && pickedTime != selectedStartTime) {
+                                          setState(() {
+                                            selectedStartTime = pickedTime;
+                                          });
+                                        }
+                                      },
+                                      child: Text('Select Start Time'),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 10.0),
+                                Row(
+                                  children: [
+                                    Text('Date: ${selectedEndDate.toLocal()}'),
+                                    SizedBox(width: 16),
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        final DateTime? pickedDate = await showDatePicker(
+                                          context: context,
+                                          initialDate: selectedEndDate,
+                                          firstDate: DateTime(2000),
+                                          lastDate: DateTime(2101),
+                                        );
+                                        if (pickedDate != null && pickedDate != selectedEndDate) {
+                                          setState(() {
+                                            selectedEndDate = pickedDate;
+                                          });
+                                        }
+                                      },
+                                      child: Text('Select Date'),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 10.0),
+                                // 结束时间选择器
+                                Row(
+                                  children: [
+                                    Text('End Time: ${selectedEndTime.format(context)}'),
+                                    SizedBox(width: 16),
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        final TimeOfDay? pickedTime = await showTimePicker(
+                                          context: context,
+                                          initialTime: selectedEndTime,
+                                        );
+                                        if (pickedTime != null && pickedTime != selectedEndTime) {
+                                          setState(() {
+                                            selectedEndTime = pickedTime;
+                                          });
+                                        }
+                                      },
+                                      child: Text('Select End Time'),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10.0),
+                      ],
+                    ),
                   ),
-                  ElevatedButton(
-                      onPressed: (){
-                        var task = Task(listId, 0, titleController.text, descriptionController.text, addTaskState.startTime, addTaskState.endTime, 1);
-                        addTask(task);
-                        appState.notify();
-                        Navigator.of(context).pop();
-                      },
-                      child: Text("Add"),
+                  Row(
+                    children: [
+                      Expanded(child: SizedBox()),
+                      ElevatedButton(
+                        onPressed: () {
+                          // 将时间选择器的值转换为DateTime
+                          final startTime = DateTime(
+                            selectedStartDate.year,
+                            selectedStartDate.month,
+                            selectedStartDate.day,
+                            selectedStartTime.hour,
+                            selectedStartTime.minute,
+                          );
+                          final endTime = DateTime(
+                            selectedEndDate.year,
+                            selectedEndDate.month,
+                            selectedEndDate.day,
+                            selectedEndTime.hour,
+                            selectedEndTime.minute,
+                          );
+
+                          // 创建任务
+                          var task = Task(
+                            listId,
+                            0,
+                            titleController.text,
+                            descriptionController.text,
+                            startTime,
+                            endTime,
+                            1,
+                          );
+                          addTask(task);
+                          appState.notify();
+                          Navigator.of(context).pop();
+                        },
+                        child: Text("Add"),
+                      ),
+                      SizedBox(width: 20.0),
+                    ],
                   ),
-                  SizedBox(width: 20.0),
+                  SizedBox(height: 10.0),
                 ],
-              ),
-              SizedBox(height: 10.0,)
-            ],
+              );
+            }
           ),
         ),
       ),
@@ -1069,7 +1209,10 @@ class _CalendarPageState extends State<CalendarPage> {
 
     switch (selectedIndex) {
       case 0:
-        page = GeneratorHourPage();
+        page = HourlyView(
+          selectedDay: DateTime.now(),
+          tasks: taskList.values.expand((list) => list.tasks.values).toList(),
+        );
         break;
       case 1:
         page = GeneratorWeekPage();
@@ -1253,3 +1396,77 @@ class SettingPage extends StatelessWidget {
 
 // Failed assertion: line 115 pos 16: 'destinations.length >= 2': is not true.
 // must have at least 2 destinations
+
+class HourlyView extends StatelessWidget {
+  final DateTime selectedDay;
+  final List<Task> tasks;
+
+  HourlyView({required this.selectedDay, required this.tasks});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Stack(
+        children: [
+          // 背景：每小时一行
+          Column(
+            children: List.generate(24, (hour) {
+              return Container(
+                height: 60, // 每小时60像素
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Colors.grey.withOpacity(0.3),
+                    ),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Text(
+                    '${hour.toString().padLeft(2, '0')}:00',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ),
+              );
+            }),
+          ),
+          // 任务块
+          ..._buildTaskBlocks(),
+        ],
+      ),
+    );
+  }
+
+  // 构建任务块
+  List<Widget> _buildTaskBlocks() {
+    return tasks.map((task) {
+      final startHour = task.startTime.hour;
+      final startMinute = task.startTime.minute;
+      final endHour = task.endTime.hour;
+      final endMinute = task.endTime.minute;
+
+      // 计算任务块的起始位置和高度
+      final top = startHour * 60 + startMinute; // 每分钟1像素
+      final height = (endHour - startHour) * 60 + (endMinute - startMinute);
+
+      return Positioned(
+        top: top.toDouble(),
+        left: 80, // 左侧留出时间标签的空间
+        right: 0,
+        height: height.toDouble(),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.blue.withOpacity(0.5), // 任务块颜色
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Center(
+            child: Text(
+              task.title,
+              style: TextStyle(color: Colors.white, fontSize: 12),
+            ),
+          ),
+        ),
+      );
+    }).toList();
+  }
+}
