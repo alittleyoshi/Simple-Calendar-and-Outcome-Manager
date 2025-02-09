@@ -231,7 +231,7 @@ string Utility::time_to_string(const time_t time) {
 long long Utility::string_to_time(const std::string& time) {
     std::tm tm = {};
     std::istringstream ss(time);
-    ss >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%S");
+    ss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
     return mktime(&tm);
 }
 
