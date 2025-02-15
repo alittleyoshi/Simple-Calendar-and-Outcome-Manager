@@ -10,7 +10,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
-import ui.event.PlanningEvent;
+import ui.event.PlanningPaneEvent;
 
 import java.io.IOException;
 import java.net.URL;
@@ -104,19 +104,20 @@ public class PlanAddingPane extends AnchorPane implements Initializable {
     }
     private ObjectProperty<LocalDate> endDate;
 
-    public BooleanProperty titleErrorHintProperty() {
-        if (titleErrorHint == null) {
-            titleErrorHint = _planAddingTitleErrorHintLabel.visibleProperty();
+    public BooleanProperty titleErrorHintVisibleProperty() {
+        if (titleErrorHintVisible == null) {
+            titleErrorHintVisible = new SimpleBooleanProperty(PlanAddingPane.this, "titleErrorHintVisible", false);
+            _planAddingTitleErrorHintLabel.visibleProperty().bind(titleErrorHintVisible);
         }
-        return titleErrorHint;
+        return titleErrorHintVisible;
     }
-    public void setTitleErrorHint(boolean titleErrorHint) {
-        titleErrorHintProperty().set(titleErrorHint);
+    public void setTitleErrorHintVisible(boolean titleErrorHintVisible) {
+        titleErrorHintVisibleProperty().set(titleErrorHintVisible);
     }
-    public boolean isTitleErrorHint() {
-        return titleErrorHintProperty().get();
+    public boolean getTitleErrorHintVisible() {
+        return titleErrorHintVisibleProperty().get();
     }
-    private BooleanProperty titleErrorHint;
+    private BooleanProperty titleErrorHintVisible;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -139,21 +140,21 @@ public class PlanAddingPane extends AnchorPane implements Initializable {
     }
     @FXML
     private void onCancellingPlanAction() {
-        fireEvent(new PlanningEvent(PlanningEvent.Type.CANCELLING, getTitle(), getDescription(), getStartDate(), getEndDate()));
+        fireEvent(new PlanningPaneEvent(PlanningPaneEvent.Type.CANCELLING, getTitle(), getDescription(), getStartDate(), getEndDate()));
     }
-    public ObjectProperty<EventHandler<PlanningEvent>> onCancellingProperty() {
+    public ObjectProperty<EventHandler<PlanningPaneEvent>> onCancellingProperty() {
         return onCancelling;
     }
-    public void setOnCancelling(final EventHandler<PlanningEvent> value) {
+    public void setOnCancelling(final EventHandler<PlanningPaneEvent> value) {
         onCancellingProperty().set(value);
     }
-    public EventHandler<PlanningEvent> getOnCancelling() {
+    public EventHandler<PlanningPaneEvent> getOnCancelling() {
         return onCancellingProperty().get();
     }
-    private final ObjectProperty<EventHandler<PlanningEvent>> onCancelling = new ObjectPropertyBase<EventHandler<PlanningEvent>>() {
+    private final ObjectProperty<EventHandler<PlanningPaneEvent>> onCancelling = new ObjectPropertyBase<EventHandler<PlanningPaneEvent>>() {
         @Override
         protected void invalidated() {
-            setEventHandler(PlanningEvent.CANCELLING, get());
+            setEventHandler(PlanningPaneEvent.CANCELED, get());
         }
         @Override
         public Object getBean() {
@@ -167,26 +168,26 @@ public class PlanAddingPane extends AnchorPane implements Initializable {
     @FXML
     private void onCreatingPlanAction() {
         if (getTitle().isEmpty()) {
-            setTitleErrorHint(true);
+            setTitleErrorHintVisible(true);
             return;
         } else {
-            setTitleErrorHint(false);
+            setTitleErrorHintVisible(false);
         }
-        fireEvent(new PlanningEvent(PlanningEvent.Type.CREATING, getTitle(), getDescription(), getStartDate(), getEndDate()));
+        fireEvent(new PlanningPaneEvent(PlanningPaneEvent.Type.CREATING, getTitle(), getDescription(), getStartDate(), getEndDate()));
     }
-    public ObjectProperty<EventHandler<PlanningEvent>> onCreatingProperty() {
+    public ObjectProperty<EventHandler<PlanningPaneEvent>> onCreatingProperty() {
         return onCreating;
     }
-    public void setOnCreating(final EventHandler<PlanningEvent> value) {
+    public void setOnCreating(final EventHandler<PlanningPaneEvent> value) {
         onCreatingProperty().set(value);
     }
-    public EventHandler<PlanningEvent> getOnCreating() {
+    public EventHandler<PlanningPaneEvent> getOnCreating() {
         return onCreatingProperty().get();
     }
-    private final ObjectProperty<EventHandler<PlanningEvent>> onCreating = new ObjectPropertyBase<EventHandler<PlanningEvent>>() {
+    private final ObjectProperty<EventHandler<PlanningPaneEvent>> onCreating = new ObjectPropertyBase<EventHandler<PlanningPaneEvent>>() {
         @Override
         protected void invalidated() {
-            setEventHandler(PlanningEvent.CREATING, get());
+            setEventHandler(PlanningPaneEvent.CREATED, get());
         }
         @Override
         public Object getBean() {

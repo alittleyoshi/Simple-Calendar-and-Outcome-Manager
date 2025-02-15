@@ -11,7 +11,7 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
-import ui.event.PlanningEvent;
+import ui.event.PlanningPaneEvent;
 
 import java.io.IOException;
 import java.net.URL;
@@ -123,21 +123,21 @@ public class TaskAddingPane extends AnchorPane implements Initializable {
     }
     @FXML
     public void onCancellingTaskAction() {
-        fireEvent(new PlanningEvent(PlanningEvent.Type.CANCELLING, getTitle(), getDescription(), getStartDate(), getEndDate()));
+        fireEvent(new PlanningPaneEvent(PlanningPaneEvent.Type.CANCELLING, getTitle(), getDescription(), getStartDate(), getEndDate()));
     }
-    public ObjectProperty<EventHandler<PlanningEvent>> onCancellingProperty() {
+    public ObjectProperty<EventHandler<PlanningPaneEvent>> onCancellingProperty() {
         return onCancelling;
     }
-    public void setOnCancelling(EventHandler<PlanningEvent> value) {
+    public void setOnCancelling(EventHandler<PlanningPaneEvent> value) {
         onCancellingProperty().set(value);
     }
-    public EventHandler<PlanningEvent> getOnCancelling() {
+    public EventHandler<PlanningPaneEvent> getOnCancelling() {
         return onCancellingProperty().get();
     }
-    private final ObjectProperty<EventHandler<PlanningEvent>> onCancelling = new ObjectPropertyBase<EventHandler<PlanningEvent>>() {
+    private final ObjectProperty<EventHandler<PlanningPaneEvent>> onCancelling = new ObjectPropertyBase<EventHandler<PlanningPaneEvent>>() {
         @Override
         protected void invalidated() {
-            setEventHandler(PlanningEvent.CANCELLING, get());
+            setEventHandler(PlanningPaneEvent.CANCELED, get());
         }
         @Override
         public Object getBean() {
@@ -150,21 +150,21 @@ public class TaskAddingPane extends AnchorPane implements Initializable {
     };
     @FXML
     public void onCreatingTaskAction() {
-        fireEvent(new PlanningEvent(PlanningEvent.Type.CREATING, getTitle(), getDescription(), getStartDate(), getEndDate()));
+        fireEvent(new PlanningPaneEvent(PlanningPaneEvent.Type.CREATING, getTitle(), getDescription(), getStartDate(), getEndDate()));
     }
-    public ObjectProperty<EventHandler<PlanningEvent>> onCreatingProperty() {
-        return onCreating;
+    public ObjectProperty<EventHandler<PlanningPaneEvent>> onCreatedProperty() {
+        return onCreated;
     }
-    public void setOnCreating(EventHandler<PlanningEvent> value) {
-        onCreatingProperty().set(value);
+    public void setOnCreated(EventHandler<PlanningPaneEvent> value) {
+        onCreatedProperty().set(value);
     }
-    public EventHandler<PlanningEvent> getOnCreating() {
-        return onCreatingProperty().get();
+    public EventHandler<PlanningPaneEvent> getOnCreated() {
+        return onCreatedProperty().get();
     }
-    private final ObjectProperty<EventHandler<PlanningEvent>> onCreating = new ObjectPropertyBase<EventHandler<PlanningEvent>>() {
+    private final ObjectProperty<EventHandler<PlanningPaneEvent>> onCreated = new ObjectPropertyBase<EventHandler<PlanningPaneEvent>>() {
         @Override
         protected void invalidated() {
-            setEventHandler(PlanningEvent.CREATING, get());
+            setEventHandler(PlanningPaneEvent.CREATED, get());
         }
         @Override
         public Object getBean() {
@@ -172,7 +172,7 @@ public class TaskAddingPane extends AnchorPane implements Initializable {
         }
         @Override
         public String getName() {
-            return "onCreating";
+            return "onCreated";
         }
     };
 }

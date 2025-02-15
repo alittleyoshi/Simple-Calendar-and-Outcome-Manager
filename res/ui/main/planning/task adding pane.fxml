@@ -19,8 +19,12 @@
                                 <Font size="20.0" />
                             </font>
                         </Label>
-                        <Label text="标题" />
-                        <TextField fx:id="_taskAddingTitleText" promptText="一个容易记忆的标题" />
+                        <HBox spacing="10.0">
+                            <children>
+                                <Label text="标题" />
+                                <TextField fx:id="_taskAddingTitleText" promptText="一个容易记忆的标题" />
+                            </children>
+                        </HBox>
                         <Label text="描述" />
                         <TextArea fx:id="_taskAddingDescriptionText" promptText="对这个任务的描述和解释" />
                         <Label text="开始时间" />

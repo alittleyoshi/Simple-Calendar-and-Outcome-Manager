@@ -8,7 +8,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
-import ui.event.PlanningEvent;
+import ui.event.PlanningPaneEvent;
 import ui.main.planning.PlanAddingPane;
 import ui.main.planning.TaskAddingPane;
 
@@ -18,9 +18,9 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.ResourceBundle;
 
-public class PlanningPane extends AnchorPane implements Initializable {
-    public PlanningPane() {
-        FXMLLoader loader = new FXMLLoader(PlanningPane.class.getResource("/ui/main/planning pane.fxml"));
+public class PlanListPane extends AnchorPane implements Initializable {
+    public PlanListPane() {
+        FXMLLoader loader = new FXMLLoader(PlanListPane.class.getResource("/ui/main/plan list pane.fxml"));
         loader.setRoot(this);
         loader.setController(this);
         try {
@@ -34,6 +34,8 @@ public class PlanningPane extends AnchorPane implements Initializable {
     @FXML
     private TaskAddingPane _taskAddingPane;
     @FXML
+    private TaskListPane _taskListPane;
+    @FXML
     private VBox _planListBox;
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -43,28 +45,42 @@ public class PlanningPane extends AnchorPane implements Initializable {
     @FXML
     private void onPlanAddingAction() {
         _planAddingPane.setVisible(true);
+        _taskAddingPane.setVisible(false);
     }
     @FXML
     private void onCancellingPlanAction() {
         _planAddingPane.setVisible(false);
     }
     @FXML
-    private void onCreatingPlanAction(PlanningEvent planningEvent) {
-        DatabaseManager.createPlan(planningEvent.getTitle(), planningEvent.getDescription(), Date.from(planningEvent.getStartDate().atStartOfDay(ZoneId.systemDefault()).toInstant()), Date.from(planningEvent.getEndDate().atStartOfDay(ZoneId.systemDefault()).toInstant()));
+    private void onCreatingPlanAction(PlanningPaneEvent planningPaneEvent) {
+        DatabaseManager.createPlan(
+                planningPaneEvent.getTitle(),
+                planningPaneEvent.getDescription(),
+                Date.from(planningPaneEvent.getStartDate().atStartOfDay(ZoneId.systemDefault()).toInstant()),
+                Date.from(planningPaneEvent.getEndDate().atStartOfDay(ZoneId.systemDefault()).toInstant())
+        );
         flushPlanList();
     }
 
     @FXML
-    private void onTaskAddingAction() {
+    private void onAddingTaskAction() {
         _taskAddingPane.setVisible(true);
+        _planAddingPane.setVisible(false);
     }
     @FXML
     private void onCancellingTaskAction() {
         _taskAddingPane.setVisible(false);
     }
     @FXML
-    private void onCreatingTaskAction(PlanningEvent planningEvent) {
-
+    private void onCreatingTaskAction(PlanningPaneEvent planningPaneEvent) {
+        DatabaseManager.createTask(
+                _taskListPane.getPlan(),
+                planningPaneEvent.getTitle(),
+                planningPaneEvent.getDescription(),
+                Date.from(planningPaneEvent.getStartDate().atStartOfDay(ZoneId.systemDefault()).toInstant()),
+                Date.from(planningPaneEvent.getEndDate().atStartOfDay(ZoneId.systemDefault()).toInstant())
+        );
+        _taskListPane.flushTaskList();
     }
 
     private void flushPlanList() {
@@ -78,13 +94,22 @@ public class PlanningPane extends AnchorPane implements Initializable {
 //                _taskPane.setVisible(true);
                 _taskAddingPane.setVisible(false);
                 _planAddingPane.setVisible(false);
+                _taskListPane.setPlan(planItem.getPlan());
+                _taskListPane.setVisible(true);
 //                _planEditingPane.setVisible(false);
             } else if (newValue == null) {
                 oldValue.setSelected(true);
+                _taskAddingPane.setVisible(false);
+                _planAddingPane.setVisible(false);
+                _taskListPane.setVisible(true);
             }
         });
         for (Plan plan : DatabaseManager.getPlans()) {
             PlanItem planItem = new PlanItem(plan);
+            planItem.setOnDeleted(event -> {
+                DatabaseManager.removePlan(plan);
+                flushPlanList();
+            });
             _planItemToggleGroup.getToggles().add(planItem);
             _planListBox.getChildren().add(planItem);
         }
