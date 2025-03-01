@@ -1061,32 +1061,31 @@ class modifyTaskPage<T> extends PopupRoute<T> {
   @override
   Color? get barrierColor => Colors.black.withAlpha(0x50);
 
-  // This allows the popup to be dismissed by tapping the scrim or by pressing
-  // the escape key on the keyboard.
   @override
   bool get barrierDismissible => true;
 
   @override
-  String? get barrierLabel => 'Add Todo Task';
+  String? get barrierLabel => 'Modify Task';
 
   @override
   Duration get transitionDuration => const Duration(milliseconds: 300);
 
+  DateTime selectedStartDate = DateTime.now();
+  DateTime selectedEndDate = DateTime.now();
+  TimeOfDay selectedStartTime = TimeOfDay.now();
+  TimeOfDay selectedEndTime = TimeOfDay.now();
+
   @override
   Widget buildPage(BuildContext context, Animation<double> animation,
       Animation<double> secondaryAnimation) {
-
-    var titleController = TextEditingController();
-    var descriptionController = TextEditingController();
+    var titleController = TextEditingController(text: modifyTaskState.task.title);
+    var descriptionController = TextEditingController(text: modifyTaskState.task.description);
     var appState = context.watch<AppState>();
 
-    titleController.text = modifyTaskState.task.title;
-    descriptionController.text = modifyTaskState.task.description;
-    addTaskState.startTime = modifyTaskState.task.startTime;
-    addTaskState.endTime = modifyTaskState.task.endTime;
-
-    print("Changed");
-    print(addTaskState.startTime.toString());
+    selectedStartDate = modifyTaskState.task.startTime;
+    selectedEndDate = modifyTaskState.task.endTime;
+    selectedStartTime = TimeOfDay.fromDateTime(modifyTaskState.task.startTime);
+    selectedEndTime = TimeOfDay.fromDateTime(modifyTaskState.task.endTime);
 
     return Center(
       child: DefaultTextStyle(
@@ -1097,92 +1096,191 @@ class modifyTaskPage<T> extends PopupRoute<T> {
             borderRadius: BorderRadius.circular(10),
             color: Colors.white,
           ),
-          child: Column(
-            children: [
-              SizedBox(height: 10.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+          child: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return Column(
                 children: [
-                  Text('Modify Todo Task',
-                  style: Theme.of(context).textTheme.headlineLarge),
-                ],
-              ),
-              SizedBox(height: 10.0),
-              Expanded(
-                // padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    SizedBox(width: 10.0),
-                    Expanded(
-                      // padding: const EdgeInsets.all(8.0),
-                      child: Scaffold(
-                        body: Column(
-                          children: [
-                            TextField(
-                              controller: titleController,
-                              decoration: InputDecoration(
-                                labelText: 'Task Title',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 10.0),
-                            TextField(
-                              controller: descriptionController,
-                              minLines: 2,
-                              maxLines: 10,
-                              decoration: InputDecoration(
-                                labelText: 'Task Description',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 10.0),
-                            AddTaskPageCalendar(),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 10.0),
-                  ],
-                ),
-              ),
-              Row(
-                children: [
-                  SizedBox(width: 20.0),
-                  ElevatedButton(
-                      onPressed: (){
-                        // modifyTaskState.task.stat = 4;
-                        // appState.modifyTask(modifyTaskState.task.listId, modifyTaskState.task.id, modifyTaskState.task);
-                        deleteTask(modifyTaskState.task.id, modifyTaskState.listIndex);
-                        appState.notify();
-                        Navigator.of(context).pop();
-                      },
-                      child: Text("Delete"),
+                  SizedBox(height: 10.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Modify Task', style: Theme.of(context).textTheme.headlineLarge),
+                    ],
                   ),
+                  SizedBox(height: 10.0),
                   Expanded(
-                    child: SizedBox(),
+                    child: Row(
+                      children: [
+                        SizedBox(width: 10.0),
+                        Expanded(
+                          child: Scaffold(
+                            body: Column(
+                              children: [
+                                TextField(
+                                  controller: titleController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Task Title',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 10.0),
+                                TextField(
+                                  controller: descriptionController,
+                                  minLines: 2,
+                                  maxLines: 10,
+                                  decoration: InputDecoration(
+                                    labelText: 'Task Description',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 10.0),
+                                Row(
+                                  children: [
+                                    Text('Date: ${selectedStartDate.toLocal()}'),
+                                    SizedBox(width: 16),
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        final DateTime? pickedDate = await showDatePicker(
+                                          context: context,
+                                          initialDate: selectedStartDate,
+                                          firstDate: DateTime(2000),
+                                          lastDate: DateTime(2101),
+                                        );
+                                        if (pickedDate != null && pickedDate != selectedStartDate) {
+                                          setState(() {
+                                            selectedStartDate = pickedDate;
+                                          });
+                                        }
+                                      },
+                                      child: Text('Select Date'),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 10.0),
+                                Row(
+                                  children: [
+                                    Text('Start Time: ${selectedStartTime.format(context)}'),
+                                    SizedBox(width: 16),
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        final TimeOfDay? pickedTime = await showTimePicker(
+                                          context: context,
+                                          initialTime: selectedStartTime,
+                                        );
+                                        if (pickedTime != null && pickedTime != selectedStartTime) {
+                                          setState(() {
+                                            selectedStartTime = pickedTime;
+                                          });
+                                        }
+                                      },
+                                      child: Text('Select Start Time'),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 10.0),
+                                Row(
+                                  children: [
+                                    Text('Date: ${selectedEndDate.toLocal()}'),
+                                    SizedBox(width: 16),
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        final DateTime? pickedDate = await showDatePicker(
+                                          context: context,
+                                          initialDate: selectedEndDate,
+                                          firstDate: DateTime(2000),
+                                          lastDate: DateTime(2101),
+                                        );
+                                        if (pickedDate != null && pickedDate != selectedEndDate) {
+                                          setState(() {
+                                            selectedEndDate = pickedDate;
+                                          });
+                                        }
+                                      },
+                                      child: Text('Select Date'),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 10.0),
+                                Row(
+                                  children: [
+                                    Text('End Time: ${selectedEndTime.format(context)}'),
+                                    SizedBox(width: 16),
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        final TimeOfDay? pickedTime = await showTimePicker(
+                                          context: context,
+                                          initialTime: selectedEndTime,
+                                        );
+                                        if (pickedTime != null && pickedTime != selectedEndTime) {
+                                          setState(() {
+                                            selectedEndTime = pickedTime;
+                                          });
+                                        }
+                                      },
+                                      child: Text('Select End Time'),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10.0),
+                      ],
+                    ),
                   ),
-                  ElevatedButton(
-                      onPressed: (){
-                        Task temp = modifyTaskState.task;
-                        modifyTaskState.task.title = titleController.text;
-                        modifyTaskState.task.description = descriptionController.text;
-                        modifyTaskState.task.startTime = addTaskState.startTime;
-                        modifyTaskState.task.endTime = addTaskState.endTime;
-                        taskList[modifyTaskState.listIndex]!.tasks[temp.id] = temp;
-                        modifyTask(modifyTaskState.task.id, modifyTaskState.listIndex);
-                        // modifyTask(modifyTaskState.listIndex, modifyTaskState.task.id);
-                      },
-                      child: Text("Save"),
+                  Row(
+                    children: [
+                      SizedBox(width: 20.0),
+                      ElevatedButton(
+                        onPressed: () {
+                          deleteTask(modifyTaskState.task.id, modifyTaskState.listIndex);
+                          appState.notify();
+                          Navigator.of(context).pop();
+                        },
+                        child: Text("Delete"),
+                      ),
+                      Expanded(child: SizedBox()),
+                      ElevatedButton(
+                        onPressed: () {
+                          final startTime = DateTime(
+                            selectedStartDate.year,
+                            selectedStartDate.month,
+                            selectedStartDate.day,
+                            selectedStartTime.hour,
+                            selectedStartTime.minute,
+                          );
+                          final endTime = DateTime(
+                            selectedEndDate.year,
+                            selectedEndDate.month,
+                            selectedEndDate.day,
+                            selectedEndTime.hour,
+                            selectedEndTime.minute,
+                          );
+
+                          modifyTaskState.task.title = titleController.text;
+                          modifyTaskState.task.description = descriptionController.text;
+                          modifyTaskState.task.startTime = startTime;
+                          modifyTaskState.task.endTime = endTime;
+
+                          taskList[modifyTaskState.listIndex]!.tasks[modifyTaskState.task.id] = modifyTaskState.task;
+                          modifyTask(modifyTaskState.task.id, modifyTaskState.listIndex);
+                          appState.notify();
+                          Navigator.of(context).pop();
+                        },
+                        child: Text("Save"),
+                      ),
+                      SizedBox(width: 20.0),
+                    ],
                   ),
-                  SizedBox(width: 20.0),
+                  SizedBox(height: 10.0),
                 ],
-              ),
-              SizedBox(height: 10.0,)
-            ],
+              );
+            }
           ),
         ),
       ),
