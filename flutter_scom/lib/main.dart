@@ -1405,41 +1405,81 @@ class HourlyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 按开始时间排序任务
+    tasks.sort((a, b) => a.startTime.compareTo(b.startTime));
+
+    // 计算任务列
+    final taskColumns = _calculateTaskColumns(tasks);
+
     return SingleChildScrollView(
-      child: Stack(
-        children: [
-          // 背景：每小时一行
-          Column(
-            children: List.generate(24, (hour) {
-              return Container(
-                height: 60, // 每小时60像素
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: Colors.grey.withOpacity(0.3),
+      scrollDirection: Axis.vertical, // 垂直滚动
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal, // 横向滚动
+        child: Container(
+          width: _calculateTotalWidth(taskColumns), // 动态计算总宽度
+          child: Stack(
+            children: [
+              // 背景：每小时一行
+              Column(
+                children: List.generate(24, (hour) {
+                  return Container(
+                    height: 60, // 每小时60像素
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Colors.grey.withOpacity(0.3),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Text(
-                    '${hour.toString().padLeft(2, '0')}:00',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ),
-              );
-            }),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Text(
+                        '${hour.toString().padLeft(2, '0')}:00',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ),
+                  );
+                }),
+              ),
+              // 任务块
+              ..._buildTaskBlocks(taskColumns),
+            ],
           ),
-          // 任务块
-          ..._buildTaskBlocks(),
-        ],
+        ),
       ),
     );
   }
 
+  // 计算任务列
+  Map<Task, int> _calculateTaskColumns(List<Task> tasks) {
+    final taskColumns = <Task, int>{};
+    final columnEndTimes = <int, DateTime>{};
+
+    for (final task in tasks) {
+      var column = 0;
+      while (columnEndTimes.containsKey(column) &&
+          columnEndTimes[column]!.isAfter(task.startTime)) {
+        column++;
+      }
+      taskColumns[task] = column;
+      columnEndTimes[column] = task.endTime;
+    }
+
+    return taskColumns;
+  }
+
+  // 计算总宽度
+  double _calculateTotalWidth(Map<Task, int> taskColumns) {
+    final maxColumn = taskColumns.values.isEmpty ? 0 : taskColumns.values.reduce((a, b) => a > b ? a : b);
+    return 80 + (maxColumn + 1) * 120; // 左侧时间标签宽度 + 列数 * 列宽
+  }
+
   // 构建任务块
-  List<Widget> _buildTaskBlocks() {
-    return tasks.map((task) {
+  List<Widget> _buildTaskBlocks(Map<Task, int> taskColumns) {
+    return taskColumns.entries.map((entry) {
+      final task = entry.key;
+      final column = entry.value;
+
       final startHour = task.startTime.hour;
       final startMinute = task.startTime.minute;
       final endHour = task.endTime.hour;
@@ -1449,10 +1489,13 @@ class HourlyView extends StatelessWidget {
       final top = startHour * 60 + startMinute; // 每分钟1像素
       final height = (endHour - startHour) * 60 + (endMinute - startMinute);
 
+      // 计算任务块的左侧偏移量
+      final left = 80 + column * 120; // 每列宽度为120像素
+
       return Positioned(
         top: top.toDouble(),
-        left: 80, // 左侧留出时间标签的空间
-        right: 0,
+        left: left.toDouble(),
+        width: 100, // 任务块宽度
         height: height.toDouble(),
         child: Container(
           decoration: BoxDecoration(
