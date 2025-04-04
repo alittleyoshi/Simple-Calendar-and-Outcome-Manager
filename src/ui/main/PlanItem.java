@@ -1,34 +1,29 @@
 package ui.main;
 
-import database.DatabaseManager;
 import database.Plan;
-import database.Status;
+import database.State;
 import javafx.beans.property.*;
-import javafx.beans.value.ChangeListener;
-import javafx.collections.ObservableList;
-import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.geometry.Side;
-import javafx.scene.AccessibleAttribute;
-import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import resource.DatabaseResource;
-import ui.event.PlanItemEvent;
+import resource.UIFileResource;
+import ui.event.ItemEvent;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.List;
-import java.util.ListIterator;
+import java.text.DateFormat;
+import java.text.spi.DateFormatProvider;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.ResourceBundle;
 
-public class PlanItem extends AnchorPane implements Initializable, Toggle {
+public class PlanItem extends ToggleButton implements Initializable, Toggle {
     private final ObjectProperty<Plan> _plan;
     public ReadOnlyObjectProperty<Plan> planProperty() {
         return _plan;
@@ -37,12 +32,14 @@ public class PlanItem extends AnchorPane implements Initializable, Toggle {
         return _plan.get();
     }
     @FXML
-    private Label _statusLabel, _titleLabel, _descriptionLabel;
+    private Label _statusLabel, _titleLabel, _timeLabel, _descriptionLabel;
     @FXML
     private TextField _titleEditingField;
+    @FXML
+    private ToggleButton _planButton;
     public PlanItem(Plan plan) {
         _plan = new SimpleObjectProperty<>(getClass(), "plan", plan);
-        FXMLLoader loader = new FXMLLoader(PlanItem.class.getResource("/ui/main/plan scene.fxml"));
+        FXMLLoader loader = new FXMLLoader(UIFileResource.planItemFXML);
         loader.setRoot(this);
         loader.setController(this);
         try {
@@ -61,16 +58,18 @@ public class PlanItem extends AnchorPane implements Initializable, Toggle {
             }
         });
         _descriptionLabel.setText(getPlan().getDescription());
-        this.setOnMouseClicked((MouseEvent mouseEvent) -> {
-            setSelected(!isSelected());
-            mouseEvent.consume();
-        });
     }
     public void flushPlanStatus() {
-        Status planStatus = getPlan().getStatus();
-        _statusLabel.setText(DatabaseResource.getStatusName(planStatus));
-        Color planStatusColor = DatabaseResource.getStatucsColor(planStatus);
+        State planState = getPlan().getState();
+        _statusLabel.setText(DatabaseResource.getStatusName(planState));
+        Color planStatusColor = DatabaseResource.getStatucsColor(planState);
         _statusLabel.setStyle(String.format("-fx-text-fill: rgba(%f, %f, %f, %f);", planStatusColor.getRed() * 256, planStatusColor.getGreen() * 256, planStatusColor.getBlue() * 256, planStatusColor.getOpacity()));
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("MM.dd");
+        _timeLabel.setText(dateTimeFormatter.format(getPlan().getStartTime().toInstant().atZone(ZoneId.systemDefault())) + "-" + dateTimeFormatter.format(getPlan().getEndTime().toInstant().atZone(ZoneId.systemDefault())));
+    }
+    @FXML
+    private void onButtonAction() {
+        setSelected(!isSelected());
     }
     @FXML
     private void onTitleLabelClicked(MouseEvent mouseEvent) {
@@ -92,96 +91,20 @@ public class PlanItem extends AnchorPane implements Initializable, Toggle {
         }
         _titleEditingField.setVisible(false);
         setTitle(_titleEditingField.getText().trim());
-        getPlan().setTitle(getTitle());
+        getPlan().withTitle(getTitle());
     }
     @FXML
-    private void onPlanDeletingAction() {
-        fireEvent(new PlanItemEvent(PlanItemEvent.Type.DELETED));
+    private void onDeletingAction() {
+        fireEvent(new ItemEvent(ItemEvent.Type.DELETED));
     }
     @FXML
-    private void onPlanContextMenuRequested(ContextMenuEvent contextMenuEvent) {
-        _titleLabel.getContextMenu().show((Node) contextMenuEvent.getSource(), null, contextMenuEvent.getX(), contextMenuEvent.getY());
-        contextMenuEvent.consume();
+    private void onEditingAction() {
+        fireEvent(new ItemEvent(ItemEvent.Type.EDITING));
     }
-    @FXML
-    private void onPlanEditingAction() {
-        System.out.println("onPlanEditingAction");
-    }
-    private final ObjectProperty<ToggleGroup> toggleGroup = new ObjectPropertyBase<ToggleGroup>() {
-        private ToggleGroup toggleGroup;
-        @Override
-        protected void invalidated() {
-            ToggleGroup tg = get();
-            if (tg != null && !tg.getToggles().contains(PlanItem.this)) {
-                if (toggleGroup != null) {
-                    toggleGroup.getToggles().remove(PlanItem.this);
-                }
-                tg.getToggles().add(PlanItem.this);
-            } else if (tg == null) {
-                toggleGroup.getToggles().remove(PlanItem.this);
-            }
-            toggleGroup = tg;
-        }
-        @Override
-        public Object getBean() {
-            return PlanItem.this;
-        }
-        @Override
-        public String getName() {
-            return "toggleGroup";
-        }
-    };;
-    @Override
-    public ToggleGroup getToggleGroup() {
-        return toggleGroup.get();
-    }
-    @Override
-    public void setToggleGroup(ToggleGroup toggleGroup) {
-        toggleGroupProperty().set(toggleGroup);
-    }
-    @Override
-    public ObjectProperty<ToggleGroup> toggleGroupProperty() {
-        return toggleGroup;
-    }
-    private final BooleanProperty selected = new BooleanPropertyBase() {
-        @Override
-        protected void invalidated() {
-            boolean selected = get();
-            ToggleGroup toggleGroup = getToggleGroup();
-            pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"), selected);
-            notifyAccessibleAttributeChanged(AccessibleAttribute.SELECTED);
-            if (toggleGroup != null) {
-                if (selected) {
-                    toggleGroup.selectToggle(PlanItem.this);
-                } else if (toggleGroup.getSelectedToggle() == PlanItem.this) {
-                    toggleGroup.selectToggle(null);
-                }
-            }
-        }
-        @Override
-        public Object getBean() {
-            return PlanItem.this;
-        }
-        @Override
-        public String getName() {
-            return "toggleGroup";
-        }
-    };;
-    @Override
-    public boolean isSelected() {
-        return selected != null && selected.get();
-    }
-    @Override
-    public void setSelected(boolean selected) {
-        selectedProperty().set(selected);
-    }
-    @Override
-    public BooleanProperty selectedProperty() {
-        return selected;
-    }
+
     private StringProperty title;
     public String getTitle() {
-        return title.get();
+        return title == null ? null : titleProperty().get();
     }
     public void setTitle(String title) {
         this.titleProperty().set(title);
@@ -203,27 +126,57 @@ public class PlanItem extends AnchorPane implements Initializable, Toggle {
         return title;
     }
 
-    protected final ObjectProperty<EventHandler<PlanItemEvent>> onDeleted = new ObjectPropertyBase<EventHandler<PlanItemEvent>>() {
-        @Override
-        protected void invalidated() {
-            setEventHandler(PlanItemEvent.DELETED, get());
+    protected ObjectProperty<EventHandler<ItemEvent>> onEditing;
+    public ObjectProperty<EventHandler<ItemEvent>> onEditingProperty() {
+        if (onEditing == null) {
+            onEditing = new ObjectPropertyBase<EventHandler<ItemEvent>>() {
+                @Override
+                protected void invalidated() {
+                    setEventHandler(ItemEvent.EDITING, get());
+                }
+                @Override
+                public Object getBean() {
+                    return PlanItem.this;
+                }
+                @Override
+                public String getName() {
+                    return "onEditing";
+                }
+            };
         }
-        @Override
-        public Object getBean() {
-            return PlanItem.this;
+        return onEditing;
+    }
+    public EventHandler<ItemEvent> getOnEditing() {
+        return onEditing == null ? null : onEditingProperty().get();
+    }
+    public void setOnEditing(EventHandler<ItemEvent> value) {
+        onEditingProperty().set(value);
+    }
+
+    protected ObjectProperty<EventHandler<ItemEvent>> onDeleted;
+    public ObjectProperty<EventHandler<ItemEvent>> onDeletedProperty() {
+        if (onDeleted == null) {
+            onDeleted = new ObjectPropertyBase<EventHandler<ItemEvent>>() {
+                @Override
+                protected void invalidated() {
+                    setEventHandler(ItemEvent.DELETED, get());
+                }
+                @Override
+                public Object getBean() {
+                    return PlanItem.this;
+                }
+                @Override
+                public String getName() {
+                    return "onDeleted";
+                }
+            };
         }
-        @Override
-        public String getName() {
-            return "onDeleted";
-        }
-    };
-    public ObjectProperty<EventHandler<PlanItemEvent>> onDeletedProperty() {
         return onDeleted;
     }
-    public EventHandler<PlanItemEvent> getOnDeleted() {
-        return onDeletedProperty().get();
+    public EventHandler<ItemEvent> getOnDeleted() {
+        return onDeleted == null ? null : onDeletedProperty().get();
     }
-    public void setOnDeleted(EventHandler<PlanItemEvent> value) {
+    public void setOnDeleted(EventHandler<ItemEvent> value) {
         onDeletedProperty().set(value);
     }
 }

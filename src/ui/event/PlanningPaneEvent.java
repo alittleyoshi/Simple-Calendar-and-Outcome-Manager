@@ -8,7 +8,7 @@ import java.time.LocalDate;
 public class PlanningPaneEvent extends Event {
     public static final EventType<PlanningPaneEvent>
             CANCELED = new EventType<>(Event.ANY, "CANCELED"),
-            CREATED = new EventType<>(Event.ANY, "CREATED");
+            CONFIRMED = new EventType<>(Event.ANY, "CONFIRMED");
     protected final Type _type;
     protected final String _title, _description;
     protected final LocalDate _startDate, _endDate;
@@ -41,11 +41,11 @@ public class PlanningPaneEvent extends Event {
         return (EventType<? extends PlanningPaneEvent>) super.getEventType();
     }
     public enum Type {
-        CANCELLING, CREATING;
+        CANCELLING, CONFIRMED;
         public EventType<? extends Event> toEventType() {
             switch (this) {
                 case CANCELLING: return PlanningPaneEvent.CANCELED;
-                case CREATING: return PlanningPaneEvent.CREATED;
+                case CONFIRMED: return PlanningPaneEvent.CONFIRMED;
                 default: return Event.ANY;
             }
         }

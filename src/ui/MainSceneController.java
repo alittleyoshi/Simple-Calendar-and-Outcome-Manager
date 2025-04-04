@@ -157,7 +157,7 @@ public class MainSceneController implements Initializable {
         _planTasksBox.getChildren().clear();
         for (Task task : plan.getTasks()) {
             TaskItem taskItem = new TaskItem(task);
-            taskItem.statusProperty().addListener((observable, oldValue, newValue) -> {
+            taskItem.stateProperty().addListener((observable, oldValue, newValue) -> {
                 planItem.flushPlanStatus();
             });
             _planTasksBox.getChildren().add(taskItem);

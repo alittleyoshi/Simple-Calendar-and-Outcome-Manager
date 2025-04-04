@@ -1,87 +1,20 @@
 package database;
 
-import javafx.collections.ObservableList;
-import javafx.collections.ObservableListBase;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-public final class Plan implements Information {
-    private final int _id;
-    private Date _startTime, _endTime;
-    private String _title, _description;
-    private final List<Task> _tasks = new ArrayList<>();
+public class Plan extends InformationBase implements PlanImpl {
+    protected final List<Task> _tasks = new ArrayList<>();
+
     @Override
-    public int getID() {
-        return _id;
-    }
-    @Override
-    public Date getStartTime() {
-        return _startTime;
-    }
-    @Override
-    public void setStartTime(Date startTime) {
-        _startTime = startTime;
-        DatabaseManager.updatePlan(this);
-    }
-    @Override
-    public Date getEndTime() {
-        return _endTime;
-    }
-    @Override
-    public void setEndTime(Date endTime) {
-        _endTime = endTime;
-        DatabaseManager.updatePlan(this);
-    }
-    @Override
-    public String getTitle() {
-        return _title;
-    }
-    @Override
-    public void setTitle(String title) {
-        _title = title;
-        DatabaseManager.updatePlan(this);
-    }
-    @Override
-    public String getDescription() {
-        return _description;
-    }
-    @Override
-    public void setDescription(String description) {
-        _description = description;
-        DatabaseManager.updatePlan(this);
-    }
-    public List<Task> getTasks() {
-        return Collections.unmodifiableList(_tasks);
-    }
-    public void setContext(String title, String description, Date startTime, Date endTime) {
-        _title = title;
-        _description = description;
-        _startTime = startTime;
-        _endTime = endTime;
-        DatabaseManager.updatePlan(this);
-    }
-    Plan(int id, String title, String description, Date startTime, Date endTime) {
-        _id = id;
-        _title = title;
-        _description = description;
-        _startTime = startTime;
-        _endTime = endTime;
-    }
-    void addTask(Task task) {
-        _tasks.add(task);
-    }
-    void removeTask(Task task) {
-        _tasks.remove(task);
-    }
-    public Status getStatus() {
+    public State getState() {
         boolean hasUnstarted = false, hasCompleted = false;
         for (Task task : _tasks) {
-            switch (task.getStatus()) {
+            switch (task.getState()) {
                 case Working:
-                    return Status.Working;
+                    return State.Working;
                 case Unstarted:
                     hasUnstarted = true;
                     break;
@@ -94,27 +27,46 @@ public final class Plan implements Information {
         }
         if (hasUnstarted) {
             if (hasCompleted) {
-                return Status.Working;
+                return State.Working;
             } else {
-                return Status.Unstarted;
+                return State.Unstarted;
             }
         } else {
             if (hasCompleted) {
-                return Status.Completed;
+                return State.Completed;
             } else {
-                return Status.Unstarted;
+                return State.Unstarted;
             }
         }
     }
+
     @Override
-    public String toString() {
-        return "Plan{" +
-                "id=" + _id +
-                ", startTime=" + _startTime +
-                ", endTime=" + _endTime +
-                ", title='" + _title + '\'' +
-                ", description='" + _description + '\'' +
-                ", tasks=" + _tasks +
-                '}';
+    public Information withState(State state) {
+        return this;
+    }
+
+    @Override
+    public List<Task> getTasks() {
+        return Collections.unmodifiableList(_tasks);
+    }
+
+    void addTask(Task task) {
+        _tasks.add(task);
+        if (task.getPlan() != this) {
+            task.withPlan(this);
+        }
+    }
+
+    void removeTask(Task task) {
+        _tasks.remove(task);
+    }
+
+    Plan(int id, String title, String description, Date startTime, Date endTime) {
+        super(id, Type.Plan, title, description, startTime, endTime, State.Unknown);
+    }
+
+    @Override
+    public void update() {
+        DatabaseManager.updatePlan(this);
     }
 }

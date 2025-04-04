@@ -4,12 +4,28 @@ import java.util.Date;
 
 public interface Information {
     int getID();
+
+    Type getType();
+
+    State getState();
+
+    Information withState(State state);
+
     Date getStartTime();
-    void setStartTime(Date startTime);
+
+    Information withStartTime(Date startTime);
+
     Date getEndTime();
-    void setEndTime(Date endTime);
+
+    Information withEndTime(Date endTime);
+
     String getTitle();
-    void setTitle(String title);
+
+    Information withTitle(String title);
+
     String getDescription();
-    void setDescription(String description);
+
+    Information withDescription(String description);
+
+    void update();
 }

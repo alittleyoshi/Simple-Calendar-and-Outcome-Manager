@@ -1,10 +1,10 @@
 package ui.main;
 
-import database.DatabaseManager;
-import database.Status;
+import database.State;
 import database.Task;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ObjectPropertyBase;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -14,6 +14,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import resource.DatabaseResource;
+import resource.UIFileResource;
+import ui.event.ItemEvent;
 
 import java.io.IOException;
 import java.net.URL;
@@ -34,7 +36,7 @@ public class TaskItem extends AnchorPane implements Initializable {
     private ToggleGroup _statusGroup;
     public TaskItem(Task task) {
         _task = task;
-        FXMLLoader loader = new FXMLLoader(TaskItem.class.getResource("/ui/main/task scene.fxml"));
+        FXMLLoader loader = new FXMLLoader(UIFileResource.taskItemFXML);
         loader.setRoot(this);
         loader.setController(this);
         try {
@@ -45,7 +47,6 @@ public class TaskItem extends AnchorPane implements Initializable {
     }
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        _titleLabel.setText(_task.getTitle());
         _titleEditingField.focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue) {
                 onTitleEditedAction();
@@ -57,7 +58,7 @@ public class TaskItem extends AnchorPane implements Initializable {
                 Node node = (Node) toggle;
                 toggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
                     if (newValue) {
-                        Color planStatusColor = DatabaseResource.getStatucsColor(_task.getStatus());
+                        Color planStatusColor = DatabaseResource.getStatucsColor(_task.getState());
                         node.setStyle(String.format("-fx-text-fill: rgba(%f, %f, %f, %f);", planStatusColor.getRed() * 256, planStatusColor.getGreen() * 256, planStatusColor.getBlue() * 256, planStatusColor.getOpacity()));
                     } else {
                         node.setStyle(null);
@@ -69,34 +70,41 @@ public class TaskItem extends AnchorPane implements Initializable {
             if (newValue == null) {
                 oldValue.setSelected(true);
             } else {
-                Status status;
+                State state;
                 if (newValue == _unstartedButton) {
-                    status = Status.Unstarted;
+                    state = State.Unstarted;
                 } else if (newValue == _workingButton) {
-                    status = Status.Working;
+                    state = State.Working;
                 } else if (newValue == _completedButton) {
-                    status = Status.Completed;
+                    state = State.Completed;
                 } else {
-                    status = Status.Unknown;
+                    state = State.Unknown;
                 }
-                setStatus(status);
+                setState(state);
             }
         });
-        setStatus(_task.getStatus());
+        flushTaskStatus();
     }
-    private ObjectProperty<Status> status;
-    public Status getStatus() {
-        return status == null ? Status.Unknown : statusProperty().get();
+
+    protected void flushTaskStatus() {
+        setState(_task.getState());
+        _titleLabel.setText(_task.getTitle());
     }
-    public void setStatus(Status status) {
-        statusProperty().set(status);
+
+    private ObjectProperty<State> state;
+    public State getState() {
+        return state == null ? State.Unknown : stateProperty().get();
     }
-    public ObjectProperty<Status> statusProperty() {
-        if (status == null) {
-            status = new ObjectPropertyBase<Status>() {
+    public void setState(State state) {
+        stateProperty().set(state);
+    }
+    public ObjectProperty<State> stateProperty() {
+        if (state == null) {
+            state = new ObjectPropertyBase<State>() {
                 @Override
                 protected void invalidated() {
-                    _task.setStatus(get());
+                    _task.withState(get());
+                    _task.update();
                     switch (get()) {
                         case Unstarted: {
                             _unstartedButton.setSelected(true);
@@ -121,11 +129,11 @@ public class TaskItem extends AnchorPane implements Initializable {
                 }
                 @Override
                 public String getName() {
-                    return "status";
+                    return "state";
                 }
             };
         }
-        return status;
+        return state;
     }
     @FXML
     private void onTitleLabelClicked(MouseEvent mouseEvent) {
@@ -145,11 +153,39 @@ public class TaskItem extends AnchorPane implements Initializable {
             _titleEditingField.setText(_task.getTitle());
         }
         _titleEditingField.setVisible(false);
-        _task.setTitle(_titleEditingField.getText().trim());
+        _task.withTitle(_titleEditingField.getText().trim());
+        _task.update();
         _titleLabel.setText(_task.getTitle());
     }
     @FXML
     private void onTaskDeletingAction() {
-        DatabaseManager.removeTask(_task);
+        fireEvent(new ItemEvent(ItemEvent.Type.DELETED));
+    }
+
+    protected ObjectProperty<EventHandler<ItemEvent>> onDeleted;
+    public ObjectProperty<EventHandler<ItemEvent>> onDeletedProperty() {
+        if (onDeleted == null) {
+            onDeleted = new ObjectPropertyBase<EventHandler<ItemEvent>>() {
+                @Override
+                protected void invalidated() {
+                    setEventHandler(ItemEvent.DELETED, get());
+                }
+                @Override
+                public Object getBean() {
+                    return TaskItem.this;
+                }
+                @Override
+                public String getName() {
+                    return "onDeleted";
+                }
+            };
+        }
+        return onDeleted;
+    }
+    public EventHandler<ItemEvent> getOnDeleted() {
+        return onDeleted == null ? null : onDeletedProperty().get();
+    }
+    public void setOnDeleted(EventHandler<ItemEvent> value) {
+        onDeletedProperty().set(value);
     }
 }

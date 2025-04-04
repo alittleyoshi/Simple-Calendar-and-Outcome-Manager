@@ -6,6 +6,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.AnchorPane;
+import resource.UIFileResource;
 
 import java.io.IOException;
 import java.net.URL;
@@ -15,7 +16,7 @@ public class MainPane extends AnchorPane implements Initializable {
     @FXML
     private ToggleGroup _tabButtonGroup;
     public MainPane() {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/ui/main pane.fxml"));
+        FXMLLoader loader = new FXMLLoader(UIFileResource.mainPaneFXML);
         loader.setRoot(this);
         loader.setController(this);
         try {
