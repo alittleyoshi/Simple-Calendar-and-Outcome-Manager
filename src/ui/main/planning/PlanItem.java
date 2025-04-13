@@ -1,4 +1,4 @@
-package ui.main;
+package ui.main.planning;
 
 import database.Plan;
 import database.State;
@@ -12,15 +12,12 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import resource.DatabaseResource;
 import resource.UIFileResource;
-import ui.event.ItemEvent;
+import ui.event.planning.ItemEvent;
 
 import java.io.IOException;
 import java.net.URL;
-import java.text.DateFormat;
-import java.text.spi.DateFormatProvider;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.ResourceBundle;
 
 public class PlanItem extends ToggleButton implements Initializable, Toggle {

@@ -1,4 +1,4 @@
-package ui.main;
+package ui.main.planning;
 
 import database.DatabaseManager;
 import database.Plan;
@@ -12,8 +12,7 @@ import javafx.scene.effect.GaussianBlur;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import resource.UIFileResource;
-import ui.event.PlanningPaneEvent;
-import ui.main.planning.FunctionPane;
+import ui.event.planning.PlanningPaneEvent;
 
 import java.io.IOException;
 import java.net.URL;

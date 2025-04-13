@@ -38,12 +38,14 @@
                               <Label fx:id="_titleLabel" text="Label">
                                  <contextMenu>
                                     <ContextMenu>
-                                      <items>
-                                        <MenuItem mnemonicParsing="false" onAction="#onTitleEditingAction" text="重命名" />
-                                          <MenuItem mnemonicParsing="false" onAction="#onTaskDeletingAction" text="删除" />
-                                      </items>
+                                       <items>
+                                          <MenuItem mnemonicParsing="false" onAction="#onTitleEditingAction" text="重命名" />
+                                          <MenuItem mnemonicParsing="false" onAction="#onEditingAction" text="编辑" />
+                                          <MenuItem mnemonicParsing="false" onAction="#onDeletingAction" text="删除" />
+                                       </items>
                                     </ContextMenu>
-                                 </contextMenu></Label>
+                                 </contextMenu>
+                              </Label>
                            </children>
                         </HBox>
                         <TextField fx:id="_titleEditingField" onAction="#onTitleEditedAction" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />

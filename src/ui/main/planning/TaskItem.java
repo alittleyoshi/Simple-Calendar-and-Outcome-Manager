@@ -1,4 +1,4 @@
-package ui.main;
+package ui.main.planning;
 
 import database.State;
 import database.Task;
@@ -15,7 +15,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import resource.DatabaseResource;
 import resource.UIFileResource;
-import ui.event.ItemEvent;
+import ui.event.planning.ItemEvent;
 
 import java.io.IOException;
 import java.net.URL;
@@ -158,7 +158,39 @@ public class TaskItem extends AnchorPane implements Initializable {
         _titleLabel.setText(_task.getTitle());
     }
     @FXML
-    private void onTaskDeletingAction() {
+    private void onEditingAction() {
+        fireEvent(new ItemEvent(ItemEvent.Type.EDITING));
+    }
+    @FXML
+
+    protected ObjectProperty<EventHandler<ItemEvent>> onEditing;
+    public ObjectProperty<EventHandler<ItemEvent>> onEditingProperty() {
+        if (onEditing == null) {
+            onEditing = new ObjectPropertyBase<EventHandler<ItemEvent>>() {
+                @Override
+                protected void invalidated() {
+                    setEventHandler(ItemEvent.EDITING, get());
+                }
+                @Override
+                public Object getBean() {
+                    return TaskItem.this;
+                }
+                @Override
+                public String getName() {
+                    return "onEditing";
+                }
+            };
+        }
+        return onEditing;
+    }
+    public EventHandler<ItemEvent> getOnEditing() {
+        return onEditing == null ? null : onEditingProperty().get();
+    }
+    public void setOnEditing(EventHandler<ItemEvent> value) {
+        onEditingProperty().set(value);
+    }
+
+    private void onDeletingAction() {
         fireEvent(new ItemEvent(ItemEvent.Type.DELETED));
     }
 

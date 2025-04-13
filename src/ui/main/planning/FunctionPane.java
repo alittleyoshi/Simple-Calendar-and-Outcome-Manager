@@ -12,7 +12,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import resource.UIFileResource;
-import ui.event.PlanningPaneEvent;
+import ui.event.planning.PlanningPaneEvent;
 
 import java.io.IOException;
 import java.net.URL;

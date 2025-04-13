@@ -1,4 +1,4 @@
-package ui.event;
+package ui.event.planning;
 
 import javafx.event.Event;
 import javafx.event.EventType;

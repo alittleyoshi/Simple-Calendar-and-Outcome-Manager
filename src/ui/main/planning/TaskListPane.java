@@ -1,4 +1,4 @@
-package ui.main;
+package ui.main.planning;
 
 import database.DatabaseManager;
 import database.Task;
@@ -12,7 +12,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import resource.UIFileResource;
-import ui.event.TaskListEvent;
+import ui.event.planning.TaskListEvent;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -76,6 +76,9 @@ public class TaskListPane extends AnchorPane implements Initializable {
     protected TaskItem addTask(Task task) {
         TaskItem taskItem = new TaskItem(task);
         taskItem.stateProperty().addListener(observable -> getPlanItem().flushPlanStatus());
+        taskItem.setOnEditing(event -> {
+
+        });
         taskItem.setOnDeleted(event -> {
             _planTasksBox.getChildren().remove(taskItem);
             DatabaseManager.removeTask(task);

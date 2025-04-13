@@ -12,8 +12,8 @@ import javafx.scene.effect.GaussianBlur;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import ui.main.PlanItem;
-import ui.main.TaskItem;
+import ui.main.planning.PlanItem;
+import ui.main.planning.TaskItem;
 
 import java.net.URL;
 import java.time.LocalDate;
