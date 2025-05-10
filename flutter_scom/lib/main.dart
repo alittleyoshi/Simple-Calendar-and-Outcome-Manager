@@ -1,6 +1,7 @@
 import 'dart:developer' as developer;
 import 'package:database/database_bindings_generated.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:ffi/ffi.dart';
 import 'package:flutter_popup/flutter_popup.dart';
@@ -1308,7 +1309,7 @@ class _CalendarPageState extends State<CalendarPage> {
     switch (selectedIndex) {
       case 0:
         page = HourlyView(
-          selectedDay: DateTime.now(),
+          // selectedDay: DateTime.now(),
           tasks: taskList.values.expand((list) => list.tasks.values).toList(),
         );
         break;
@@ -1495,14 +1496,68 @@ class SettingPage extends StatelessWidget {
 // Failed assertion: line 115 pos 16: 'destinations.length >= 2': is not true.
 // must have at least 2 destinations
 
-class HourlyView extends StatelessWidget {
-  final DateTime selectedDay;
+class HourlyView extends StatefulWidget {
   final List<Task> tasks;
 
-  HourlyView({required this.selectedDay, required this.tasks});
+  const HourlyView({Key? key, required this.tasks}) : super(key: key);
+
+  @override
+  _HourlyViewState createState() => _HourlyViewState();
+}
+
+class _HourlyViewState extends State<HourlyView> {
+  DateTime _selectedDate = DateTime.now();
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final filteredTasks = widget.tasks.where((task) =>
+      task.startTime.year == _selectedDate.year &&
+      task.startTime.month == _selectedDate.month &&
+      task.startTime.day == _selectedDate.day
+    ).toList();
+
+    return Column(
+      children: [
+        // 日期选择器
+        Padding(
+          padding: EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                DateFormat('yyyy-MM-dd').format(_selectedDate),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              IconButton(
+                icon: Icon(Icons.calendar_today, size: 20),
+                onPressed: () => _selectDate(context),
+              ),
+            ],
+          ),
+        ),
+        // 小时视图内容
+        Expanded(
+          child: _buildHourlyView(filteredTasks),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHourlyView(List<Task> tasks) {
     // 按开始时间排序任务
     tasks.sort((a, b) => a.startTime.compareTo(b.startTime));
 
