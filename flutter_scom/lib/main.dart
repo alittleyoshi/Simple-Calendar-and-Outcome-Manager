@@ -1,4 +1,5 @@
 import 'dart:developer' as developer;
+import 'dart:math';
 import 'package:database/database_bindings_generated.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -1531,6 +1532,7 @@ class _HourlyViewState extends State<HourlyView> {
     ).toList();
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 日期选择器
         Padding(
@@ -1624,7 +1626,10 @@ class _HourlyViewState extends State<HourlyView> {
   // 计算总宽度
   double _calculateTotalWidth(Map<Task, int> taskColumns) {
     final maxColumn = taskColumns.values.isEmpty ? 0 : taskColumns.values.reduce((a, b) => a > b ? a : b);
-    return 80 + (maxColumn + 1) * 120; // 左侧时间标签宽度 + 列数 * 列宽
+    final contentWidth = 80 + (maxColumn + 1) * 120;
+    final screenWidth = MediaQuery.of(context).size.width;
+    return max(contentWidth.toDouble(), screenWidth); // 关键改动：取最大值
+    // return 80 + (maxColumn + 1) * 120; // 左侧时间标签宽度 + 列数 * 列宽
   }
 
   // 构建任务块
