@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:ffi/ffi.dart';
 import 'package:flutter_popup/flutter_popup.dart';
 import 'package:database/database.dart' as database;
+import 'package:table_calendar/table_calendar.dart';
 
 class Task {
   var listId = 0;
@@ -432,7 +433,7 @@ class AddTaskListPage<T> extends PopupRoute<T> {
 }
 
 class _TodoPageState extends State<TodoPage> {
-  var selectedIndex = 0;
+  var selectedIndex = -1;
   var selectedListId = 0;
 
   @override
@@ -457,14 +458,11 @@ class _TodoPageState extends State<TodoPage> {
       ],
     )));
 
-    // TODO
-    // if (appState.afterDelete) {
-    //   setState(() {
-    //     appState.afterDelete = false;
-    //     appState.listIndex = 0;
-    //     selectedIndex = 0;
-    //   });
-    // }
+    if ( taskList[selectedListId] == null) {
+      setState(() {
+        selectedIndex = -1;
+      });
+    }
 
     var myNavigationRail = MyNavigationRail(
       destinations: destination,
@@ -482,18 +480,11 @@ class _TodoPageState extends State<TodoPage> {
       selectedIndex: selectedIndex,
     );
 
-    // if(selectedIndex == appState.tasklist.length) {
-    //   Navigator.of(context).push(AddTaskListPage());
-    //   return build(context);
-    // }
-
     if (destination.length == 1) {
       page = Scaffold();
     }
 
     page = GeneratorTodoPage(listIndex: selectedListId);
-
-    // print("${appState.tasklist.length}");
 
     return Scaffold(
       body: Row(
@@ -530,14 +521,7 @@ class GeneratorTodoPage extends StatefulWidget {
 
 class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
   @override build(BuildContext context) {
-    // widget.list.taskList.add(Task(1, 'eltiT', 'Todo2', DateTime.now(), DateTime.now(), 1));
     var appState = context.watch<AppState>();
-
-    // var addTaskPage = GeneratorAddTaskPage(child: Text('???'));
-
-    // if (widget.pop) {
-    //   return addTaskPage;
-    // }
 
     if (taskList[widget.listIndex] == null) {
       return Scaffold();
@@ -1473,27 +1457,6 @@ class CalendarHourPageContainer extends StatelessWidget {
   }
 }
 
-class GeneratorWeekPage extends StatelessWidget{
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold();
-  }
-}
-
-class GeneratorMonthPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold();
-  }
-}
-
-class SettingPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold();
-  }
-}
-
 // Failed assertion: line 115 pos 16: 'destinations.length >= 2': is not true.
 // must have at least 2 destinations
 
@@ -1669,5 +1632,348 @@ class _HourlyViewState extends State<HourlyView> {
         ),
       );
     }).toList();
+  }
+}
+
+class GeneratorMonthPage extends StatefulWidget {
+  @override
+  _GeneratorMonthPageState createState() => _GeneratorMonthPageState();
+}
+
+class _GeneratorMonthPageState extends State<GeneratorMonthPage> {
+  CalendarFormat _calendarFormat = CalendarFormat.month;
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay;
+  Map<DateTime, List<Task>> _tasksByDay = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDay = _focusedDay;
+    // Populate _tasksByDay from your taskList data
+    _loadTasksForMonth();
+  }
+
+  void _loadTasksForMonth() {
+    // Logic to filter tasks from 'taskList' for the currently focused month
+    // and group them by day.
+    // Example:
+    _tasksByDay.clear();
+    taskList.values.forEach((list) {
+      list.tasks.values.forEach((task) {
+        // Normalize task.startTime to midnight for day-based grouping
+        DateTime taskDay = DateTime(task.startTime.year, task.startTime.month, task.startTime.day);
+        if (_tasksByDay[taskDay] == null) {
+          _tasksByDay[taskDay] = [];
+        }
+        _tasksByDay[taskDay]!.add(task);
+      });
+    });
+    setState(() {});
+  }
+
+  List<Task> _getEventsForDay(DateTime day) {
+    // Normalize day to midnight for lookup
+    DateTime normalizedDay = DateTime(day.year, day.month, day.day);
+    return _tasksByDay[normalizedDay] ?? [];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<AppState>(); // If needed for updates
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Month View'),
+      ),
+      body: Column(
+        children: [
+          TableCalendar<Task>(
+            firstDay: DateTime.utc(2010, 10, 16),
+            lastDay: DateTime.utc(2030, 3, 14),
+            focusedDay: _focusedDay,
+            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+            calendarFormat: _calendarFormat,
+            eventLoader: _getEventsForDay,
+            startingDayOfWeek: StartingDayOfWeek.monday,
+            onDaySelected: (selectedDay, focusedDay) {
+              if (!isSameDay(_selectedDay, selectedDay)) {
+                setState(() {
+                  _selectedDay = selectedDay;
+                  _focusedDay = focusedDay;
+                });
+              }
+            },
+            onFormatChanged: (format) {
+              if (_calendarFormat != format) {
+                setState(() {
+                  _calendarFormat = format;
+                });
+              }
+            },
+            onPageChanged: (focusedDay) {
+              _focusedDay = focusedDay;
+              _loadTasksForMonth(); // Reload tasks for the new month
+            },
+          ),
+          const SizedBox(height: 8.0),
+          Expanded(
+            child: _selectedDay != null
+                ? ListView(
+                    children: _getEventsForDay(_selectedDay!)
+                        .map((task) => ListTile(
+                              title: Text(task.title),
+                              subtitle: Text(task.description),
+                              onTap: (){
+                                Navigator.of(context).push(
+                                    modifyTaskPage<void>()
+                                );},
+                              // Add onTap to view/edit task
+                            ))
+                        .toList(),
+                  )
+                : Container(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SettingPage extends StatefulWidget {
+  @override
+  _SettingPageState createState() => _SettingPageState();
+}
+
+class _SettingPageState extends State<SettingPage> {
+  bool _darkModeEnabled = false; // Example setting
+
+  @override
+  Widget build(BuildContext context) {
+    // var appState = context.watch<AppState>(); // To modify global app settings
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Settings'),
+      ),
+      body: ListView(
+        children: <Widget>[
+          SwitchListTile(
+            title: Text('Dark Mode (Not Impl)'),
+            value: _darkModeEnabled,
+            onChanged: (bool value) {
+              setState(() {
+                _darkModeEnabled = value;
+                // Here you would typically call a method in your AppState or
+                // a theme provider to change the theme of the app.
+                // For example: Provider.of<ThemeProvider>(context, listen: false).setTheme(value);
+              });
+            },
+          ),
+          ListTile(
+            title: Text('Notification Settings (Example)'),
+            trailing: Icon(Icons.arrow_forward_ios),
+            onTap: () {
+              // Navigate to a detailed notification settings page
+            },
+          ),
+          ListTile(
+            title: Text('About SCOM'),
+            onTap: () {
+              showAboutDialog(
+                context: context,
+                applicationName: 'SCOM',
+                applicationVersion: '0.0.1', // Get from package_info_plus if you want
+                applicationLegalese: '©2025 OIer/HSAS',
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class GeneratorWeekPage extends StatefulWidget {
+  @override
+  _GeneratorWeekPageState createState() => _GeneratorWeekPageState();
+}
+
+class _GeneratorWeekPageState extends State<GeneratorWeekPage> {
+  late DateTime _currentDate; // Any date within the current week
+  late DateTime _startOfWeek;
+  late DateTime _endOfWeek;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentDate = DateTime.now();
+    _calculateWeekRange(_currentDate);
+  }
+
+  void _calculateWeekRange(DateTime date) {
+    // Assuming Monday is the start of the week
+    _startOfWeek = date.subtract(Duration(days: date.weekday - 1));
+    _endOfWeek = _startOfWeek.add(Duration(days: 6));
+    // To ensure time components are zeroed out for accurate date comparison
+    _startOfWeek = DateTime(_startOfWeek.year, _startOfWeek.month, _startOfWeek.day);
+    _endOfWeek = DateTime(_endOfWeek.year, _endOfWeek.month, _endOfWeek.day, 23, 59, 59); // End of the last day
+  }
+
+  void _previousWeek() {
+    setState(() {
+      _currentDate = _currentDate.subtract(Duration(days: 7));
+      _calculateWeekRange(_currentDate);
+    });
+  }
+
+  void _nextWeek() {
+    setState(() {
+      _currentDate = _currentDate.add(Duration(days: 7));
+      _calculateWeekRange(_currentDate);
+    });
+  }
+
+  List<Task> _getTasksForDay(DateTime day) {
+    List<Task> dayTasks = [];
+    DateTime dayStart = DateTime(day.year, day.month, day.day);
+    DateTime dayEnd = DateTime(day.year, day.month, day.day, 23, 59, 59, 999);
+
+    taskList.values.forEach((list) {
+      list.tasks.values.forEach((task) {
+        // Check if the task's startTime or endTime falls within the day
+        // This is a simple check, you might want more complex logic for multi-day tasks
+        if ((task.startTime.isAfter(dayStart) && task.startTime.isBefore(dayEnd)) ||
+            (task.endTime.isAfter(dayStart) && task.endTime.isBefore(dayEnd)) ||
+            (task.startTime.isBefore(dayStart) && task.endTime.isAfter(dayEnd))) {
+          dayTasks.add(task);
+        }
+      });
+    });
+    dayTasks.sort((a, b) => a.startTime.compareTo(b.startTime)); // Sort tasks by start time
+    return dayTasks;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<AppState>(); // Watch for changes if tasks can be updated elsewhere
+
+    return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false, // Remove back button if it's part of a sub-navigation
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              icon: Icon(Icons.chevron_left),
+              onPressed: _previousWeek,
+            ),
+            Text(
+              "${DateFormat('MMM d').format(_startOfWeek)} - ${DateFormat('MMM d, yyyy').format(_endOfWeek)}",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            IconButton(
+              icon: Icon(Icons.chevron_right),
+              onPressed: _nextWeek,
+            ),
+          ],
+        ),
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          // Determine if the layout should be more compact (e.g. for smaller screens)
+          // For simplicity, this example uses a fixed number of columns for days
+          // For a responsive design, you might use GridView or change layout based on constraints.
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: List.generate(7, (index) { // 7 days in a week
+              final day = _startOfWeek.add(Duration(days: index));
+              final tasksForDay = _getTasksForDay(day);
+
+              return Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      right: index < 6 ? BorderSide(color: Colors.grey.shade300) : BorderSide.none,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      // Day Header
+                      Container(
+                        padding: EdgeInsets.all(8.0),
+                        width: double.infinity,
+                        color: DateTime.now().day == day.day && DateTime.now().month == day.month && DateTime.now().year == day.year
+                            ? Theme.of(context).colorScheme.primary.withOpacity(0.3)
+                            : Colors.grey.shade200,
+                        child: Column(
+                          children: [
+                            Text(
+                              DateFormat('EEE').format(day), // e.g., Mon
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              DateFormat('d').format(day), // e.g., 12
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Tasks List for the day
+                      Expanded(
+                        child: tasksForDay.isEmpty
+                            ? Center(child: Text('-', style: TextStyle(color: Colors.grey)))
+                            : ListView.builder(
+                                itemCount: tasksForDay.length,
+                                itemBuilder: (context, taskIndex) {
+                                  final task = tasksForDay[taskIndex];
+                                  return InkWell(
+                                    onTap: () {
+                                       // Navigate to task details or modify task
+                                       // Similar to your TodoPage's task onTap
+                                      modifyTaskState.listIndex = task.listId;
+                                      modifyTaskState.task = task;
+                                      Navigator.of(context).push(
+                                        modifyTaskPage<void>()
+                                      ).then((_) => setState((){})); // Refresh UI after modification
+                                    },
+                                    child: Container(
+                                      margin: EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
+                                      padding: EdgeInsets.all(6.0),
+                                      decoration: BoxDecoration(
+                                        color: task.status == 2 // Example: Highlight completed tasks
+                                            ? Colors.deepOrange[200]
+                                            : Theme.of(context).colorScheme.secondaryContainer,
+                                        borderRadius: BorderRadius.circular(4.0),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            task.title,
+                                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          Text(
+                                            "${DateFormat.jm().format(task.startTime)} - ${DateFormat.jm().format(task.endTime)}",
+                                            style: TextStyle(fontSize: 10, color: Colors.grey.shade700),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          );
+        },
+      ),
+    );
   }
 }
