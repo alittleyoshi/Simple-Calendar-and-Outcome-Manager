@@ -87,9 +87,7 @@ Database::~Database() {
 }
 
 #ifdef MACOS
-
-#include "database_macos.cpp"
-
+    #include "database_macos.cpp"
 #else
 
 using std::format;
@@ -221,6 +219,12 @@ int Database::update_task(const Task& task) {
 
 #endif
 
+#ifdef __ANDROID__
+    #include "database_android.cpp"
+#else
+    #define PLATFORM_ANDROID 0
+#endif
+
 string Utility::time_to_string(const time_t time) {
     const std::tm* tm = std::localtime(&time);
     std::stringstream ss;
@@ -271,7 +275,15 @@ int Dart_init() {
         return -2;
     }
 
-    db = new Database("tasks.db");
+    std::string path;
+
+    #ifdef __ANDROID__
+        path = get_database_path();
+    #else
+        path = "tasks.db";
+    #endif
+
+    db = new Database(path);
     inited = true;
     LOG(DEBUG) << "Init finished.";
 
