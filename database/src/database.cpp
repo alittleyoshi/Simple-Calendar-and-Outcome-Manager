@@ -278,7 +278,7 @@ int Dart_init() {
     std::string path;
 
     #ifdef __ANDROID__
-        LOG(INFO) << "Android init."
+        LOG(INFO) << "Android init.";
         path = get_database_path();
         LOG(DEBUG) << "Android path:" << path;
         throw std::runtime_error("Detect Andriod Successful!");
