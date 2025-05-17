@@ -31,7 +31,7 @@ android {
         externalNativeBuild {
             cmake {
                 // 指定 CMake 版本
-                version "3.28"
+                version "3.31.7"
             }
         }
     }

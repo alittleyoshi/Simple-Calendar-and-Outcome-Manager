@@ -24,6 +24,7 @@ jobs:
           ./flutter_scom/build/
           ./flutter_scom/.dart_tool/
           ~/.pub-cache/
+          ~/.gradle/
         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./flutter_scom/pubspec.lock') }}
         restore-keys: |
           ${{ runner.os }}-build-${{ env.cache-name }}-
