@@ -281,7 +281,7 @@ int Dart_init() {
         LOG(INFO) << "Android init.";
         path = get_database_path();
         LOG(DEBUG) << "Android path:" << path;
-        throw std::runtime_error("Detect Andriod Successful!");
+        // throw std::runtime_error("Detect Andriod Successful!");
     #else
         path = "tasks.db";
     #endif
