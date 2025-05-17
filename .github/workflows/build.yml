@@ -18,7 +18,7 @@ jobs:
     - name: Cache
       uses: actions/cache@v4.2.0
       env:
-        cache-name: cache-flutter
+        cache-name: cache-flutter-android
       with:
         path: |
           ./flutter_scom/build/
@@ -37,7 +37,7 @@ jobs:
     - name: flutter-install
       run: curl -O https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.27.0-stable.tar.xz && tar -xf ./flutter_linux_3.27.0-stable.tar.xz -C .
     - name: build
-      run: cd flutter_scom && ../flutter/bin/flutter config --no-analytics && ../flutter/bin/flutter config --no-cli-animations && ../flutter/bin/flutter pub get && ../flutter/bin/flutter build apk
+      run: cd flutter_scom && ../flutter/bin/flutter config --no-analytics && ../flutter/bin/flutter config --no-cli-animations && ../flutter/bin/flutter pub get && ../flutter/bin/flutter build apk --verbose
     - name: bundle
       run: tar -zcvf ./android-release.tar.gz ./flutter_scom/build/android/
 
