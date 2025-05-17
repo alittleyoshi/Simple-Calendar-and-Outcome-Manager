@@ -16,7 +16,12 @@ add_compile_definitions(SQLITE_ENABLE_RTREE
     SQLITE_ENABLE_FTS3)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Android")
-    # 设置针对 Windows 的编译标志
+    message(STATUS "Building for Android platform!")
+    add_compile_definitions(__ANDROID__)
+endif ()
+
+if(ANDROID)
+    message(STATUS "Building for Android platform.")
     add_compile_definitions(__ANDROID__)
 endif ()
 
