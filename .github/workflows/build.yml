@@ -42,7 +42,7 @@ jobs:
     - name: flutter-install
       run: curl -O https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.27.0-stable.tar.xz && tar -xf ./flutter_linux_3.27.0-stable.tar.xz -C .
     - name: build
-      run: cd flutter_scom && ../flutter/bin/flutter config --no-analytics && ../flutter/bin/flutter config --no-cli-animations && ../flutter/bin/flutter pub get && ../flutter/bin/flutter build apk --verbose
+      run: export PATH=/home/runner/work/Simple-Calendar-and-Outcome-Manager/Simple-Calendar-and-Outcome-Manager/cmake-3.31.7-linux-x86_64/bin:$PATH && cd flutter_scom && ../flutter/bin/flutter config --no-analytics && ../flutter/bin/flutter config --no-cli-animations && ../flutter/bin/flutter pub get && ../flutter/bin/flutter build apk --verbose
     - name: bundle
       run: tar -zcvf ./android-release.tar.gz ./flutter_scom/build/android/
 
