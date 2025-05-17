@@ -21,7 +21,6 @@ jobs:
         cache-name: cache-flutter-android
       with:
         path: |
-          ./flutter_scom/build/
           ./flutter_scom/.dart_tool/
           ~/.pub-cache/
           ~/.gradle/
