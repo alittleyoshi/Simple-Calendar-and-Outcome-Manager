@@ -28,6 +28,12 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        externalNativeBuild {
+            cmake {
+                // 指定 CMake 版本
+                version "3.28"
+            }
+        }
     }
 
     buildTypes {
