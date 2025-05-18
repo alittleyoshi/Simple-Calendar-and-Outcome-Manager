@@ -6,17 +6,22 @@ import 'dart:isolate';
 
 import 'database_bindings_generated.dart';
 
-/// A very short-lived native function.
-///
-/// For very short-lived functions, it is fine to call them on the main isolate.
-/// They will block the Dart execution while running the native function, so
-/// only do this for native functions which are guaranteed to be short-lived.
-// int sum(int a, int b) => _bindings.sum(a, b);
+const String _libName = 'database';
 
-final _bindings = DatabaseBindings(Platform.isLinux ?
-    DynamicLibrary.open('libdatabase.so') : Platform.isMacOS ?
-    DynamicLibrary.open('database.framework') :
-    DynamicLibrary.open('database.dll'));
+final _dylib = () {
+  if (Platform.isMacOS || Platform.isIOS) {
+    return DynamicLibrary.open('$_libName.framework/$_libName');
+  }
+  if (Platform.isAndroid || Platform.isLinux) {
+    return DynamicLibrary.open('lib$_libName.so');
+  }
+  if (Platform.isWindows) {
+    return DynamicLibrary.open('$_libName.dll');
+  }
+  throw UnsupportedError('Unknown platform: ${Platform.operatingSystem}');
+}();
+
+final DatabaseBindings _bindings = DatabaseBindings(_dylib);
 
 final initDatabaseC = _bindings.Dart_init;
 final preGetTaskListC = _bindings.Dart_get_list_pre;
