@@ -591,7 +591,7 @@ class _GeneratorTodoPageState extends State<GeneratorTodoPage> {
                               modifyTaskState.task = task;
                               // modifyTaskState.task.listId = widget.listIndex; what's?
                               Navigator.of(context).push(
-                                modifyTaskPage<void>()
+                                ModifyTaskPage<void>()
                               );
                             },
                             child: Row(
@@ -1043,7 +1043,7 @@ class ModifyTaskState {
 
 var modifyTaskState = ModifyTaskState();
 
-class modifyTaskPage<T> extends PopupRoute<T> {
+class ModifyTaskPage<T> extends PopupRoute<T> {
   @override
   Color? get barrierColor => Colors.black.withAlpha(0x50);
 
@@ -1305,7 +1305,7 @@ class _CalendarPageState extends State<CalendarPage> {
         page = GeneratorMonthPage();
         break;
       default:
-        throw UnimplementedError("No implemented for ${selectedIndex}");
+        throw UnimplementedError("No implemented for $selectedIndex");
     }
 
     return LayoutBuilder(builder: (context, constraints) {
@@ -1352,89 +1352,6 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 }
 
-class GeneratorHourPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    var begin_time = DateTime.now().add(Duration(hours: -1));
-    var end_time = begin_time.add(Duration(hours: 12));
-
-
-
-    return Row(
-      children: [
-        SizedBox(width: 20),
-        Expanded(
-          child: Column(
-            children: [
-              Container(
-                alignment: Alignment.center,
-                color: Theme.of(context).colorScheme.primaryContainer,
-                child: Text(begin_time.toString()),
-              ),
-              Container(
-                alignment: Alignment.center,
-                color: Theme.of(context).colorScheme.secondaryContainer,
-                child: Text(begin_time.add(Duration(hours: 1)).toString()),
-              ),
-              Container(
-                alignment: Alignment.center,
-                color: Theme.of(context).colorScheme.primaryContainer,
-                child: Text(begin_time.add(Duration(hours: 2)).toString()),
-              ),
-              Container(
-                alignment: Alignment.center,
-                color: Theme.of(context).colorScheme.secondaryContainer,
-                child: Text(begin_time.add(Duration(hours: 3)).toString()),
-              ),
-              Container(
-                alignment: Alignment.center,
-                color: Theme.of(context).colorScheme.primaryContainer,
-                child: Text(begin_time.add(Duration(hours: 4)).toString()),
-              ),
-              Container(
-                alignment: Alignment.center,
-                color: Theme.of(context).colorScheme.secondaryContainer,
-                child: Text(begin_time.add(Duration(hours: 5)).toString()),
-              ),
-              Container(
-                alignment: Alignment.center,
-                color: Theme.of(context).colorScheme.primaryContainer,
-                child: Text(begin_time.add(Duration(hours: 6)).toString()),
-              ),
-              Container(
-                alignment: Alignment.center,
-                color: Theme.of(context).colorScheme.secondaryContainer,
-                child: Text(begin_time.add(Duration(hours: 7)).toString()),
-              ),
-              Container(
-                alignment: Alignment.center,
-                color: Theme.of(context).colorScheme.primaryContainer,
-                child: Text(begin_time.add(Duration(hours: 8)).toString()),
-              ),
-              Container(
-                alignment: Alignment.center,
-                color: Theme.of(context).colorScheme.secondaryContainer,
-                child: Text(begin_time.add(Duration(hours: 9)).toString()),
-              ),
-              Container(
-                alignment: Alignment.center,
-                color: Theme.of(context).colorScheme.primaryContainer,
-                child: Text(begin_time.add(Duration(hours: 10)).toString()),
-              ),
-              Container(
-                alignment: Alignment.center,
-                color: Theme.of(context).colorScheme.secondaryContainer,
-                child: Text(begin_time.add(Duration(hours: 11)).toString()),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(width: 20),
-      ],
-    );
-  }
-}
-
 class CalendarHourPageContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -1463,7 +1380,7 @@ class CalendarHourPageContainer extends StatelessWidget {
 class HourlyView extends StatefulWidget {
   final List<Task> tasks;
 
-  const HourlyView({Key? key, required this.tasks}) : super(key: key);
+  const HourlyView({super.key, required this.tasks});
 
   @override
   _HourlyViewState createState() => _HourlyViewState();
@@ -1726,7 +1643,7 @@ class _GeneratorMonthPageState extends State<GeneratorMonthPage> {
                               subtitle: Text(task.description),
                               onTap: (){
                                 Navigator.of(context).push(
-                                    modifyTaskPage<void>()
+                                    ModifyTaskPage<void>()
                                 );},
                               // Add onTap to view/edit task
                             ))
@@ -1935,7 +1852,7 @@ class _GeneratorWeekPageState extends State<GeneratorWeekPage> {
                                       modifyTaskState.listIndex = task.listId;
                                       modifyTaskState.task = task;
                                       Navigator.of(context).push(
-                                        modifyTaskPage<void>()
+                                        ModifyTaskPage<void>()
                                       ).then((_) => setState((){})); // Refresh UI after modification
                                     },
                                     child: Container(
